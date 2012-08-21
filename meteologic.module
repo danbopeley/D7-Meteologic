@@ -14,3 +14,20 @@ function meteologic_help($path, $arg) {
   }
 }
 
+/**
+ * Implements hook_menu().
+ */
+function meteologic_menu() {
+  $items = array();
+
+  $items['admin/config/services/meteologic'] = array(
+    'title' => 'Meteologic',
+    'description' => 'Manage weather feeds.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('meteologic_settings_form'),
+    'access arguments' => array('administer meteologic'),
+    'page' => 'meteologic.admin.inc',
+  );
+
+  return $items;
+}
