@@ -4,3 +4,13 @@
  * Meteologic module.
  */
 
+/**
+ * Implements hook_help().
+ */
+function meteologic_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#meteologic':
+      return t('Meteologic is primarily an API module. It provides a framework for consuming external feather feeds.');
+  }
+}
+
