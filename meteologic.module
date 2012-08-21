@@ -38,11 +38,7 @@ function meteologic_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('meteologic_settings_form'),
     'access arguments' => array('administer meteologic'),
-<<<<<<< HEAD
-    'page' => 'meteologic.admin.inc',
-=======
     'file' => 'meteologic.admin.inc',
->>>>>>> created admin settings form
   );
 
   return $items;
