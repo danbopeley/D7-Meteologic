@@ -15,6 +15,18 @@ function meteologic_help($path, $arg) {
 }
 
 /**
+ * Implements hook_permission().
+ */
+function meteologic_permission() {
+  return array(
+    'administer meteologic' => array(
+      'title' => t('Administer Meteologic'),
+      'description' => t('Configure the meteologic module.'),
+    ),
+  );
+}
+
+/**
  * Implements hook_menu().
  */
 function meteologic_menu() {
