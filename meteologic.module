@@ -43,3 +43,18 @@ function meteologic_menu() {
 
   return $items;
 }
+
+/**
+ * Returns a list of available forecast types.
+ */
+function meteologic_forecast_types() {
+  $forecasts = array(
+    'current' => t('Current Conditions'),
+    'point' => t('Point Forecast'),
+    'radar' => t('Radar'),
+  );
+
+  // Enables hook_meteologic_forecast_type_alter().
+  drupal_alter(array('meteologic_forecast_type'), $forecasts);
+  return $forecasts;
+}
