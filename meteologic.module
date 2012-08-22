@@ -243,4 +243,19 @@ function meteologic_update_forecasts_batch_finished($success, $results, $operati
   }
 }
 
+/**
+ * Updates forecast information for a specific provider.
+ * This function shouldn't be called directly unless you know what you are
+ * doing! If all you want to do is update the forecast information manually
+ * please consider visiting the settings page at "admin/config/services/update".
+ *
+ * @param string
+ *   The provider's machine name.
+ * @return boolean
+ *   Whether the update was successful or not.
+ */
+function _meteologic_update_forecast($provider) {
+  // @TODO write this function.
+  watchdog('meteologic', 'Updated forecast for provider: %name', array('%name' => $provider['name']), WATCHDOG_INFO);
+  return TRUE;
 }
