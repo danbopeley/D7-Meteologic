@@ -60,9 +60,20 @@ function meteologic_menu() {
     }
   }
 
+  $items['admin/config/services/meteologic/update'] = array(
+    'title' => 'Update',
+    'description' => 'Update weather feeds.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('meteologic_update_form'),
+    'access arguments' => array('administer meteologic'),
+    'file' => 'meteologic.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 49,
+  );
+
   $items['admin/config/services/meteologic/summary'] = array(
     'title' => 'Summary',
-    'description' => 'Manage weather feeds.',
+    'description' => 'Meteologic configuration summary.',
     'page callback' => 'meteologic_summary_page',
     'access arguments' => array('administer meteologic'),
     'file' => 'meteologic.admin.inc',
@@ -125,4 +136,5 @@ function meteologic_forecast_providers() {
   }
 
   return $providers;
+}
 }
