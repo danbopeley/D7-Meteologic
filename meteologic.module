@@ -161,8 +161,6 @@ function meteologic_forecast_providers() {
  *   An array of provider machine names.
  */
 function meteologic_update_forecasts(array $providers) {
-  $provider_info = meteologic_forecast_providers();
-
   // Use Batch API to update each one.
   batch_set(array(
     'title' => t('Updating Meteologic forecasts...'),
