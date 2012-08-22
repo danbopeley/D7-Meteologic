@@ -45,7 +45,11 @@ function meteologic_menu() {
 }
 
 /**
+/**
  * Returns a list of available forecast types.
+ *
+ * @return array
+ *   An array of weather forecast types, keyed by machine name.
  */
 function meteologic_forecast_types() {
   static $types;
@@ -61,4 +65,24 @@ function meteologic_forecast_types() {
   // Enables hook_meteologic_forecast_type_alter().
   drupal_alter(array('meteologic_forecast_type'), $types);
   return $types;
+}
+
+/**
+ * Returns a list of available forecast providers.
+ *
+ * @return array
+ *   An array of weather forecast providers, keyed by machine name.
+ */
+function meteologic_forecast_providers() {
+  static $providers;
+
+  if (!isset($providers)) {
+    $providers = array();
+
+    foreach (module_implements('meteologic_provider_info') as $module) {
+      $providers += module_invoke($module, 'meteologic_provider_info');
+    }
+  }
+
+  return $providers;
 }
