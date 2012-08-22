@@ -41,6 +41,35 @@ function meteologic_menu() {
     'file' => 'meteologic.admin.inc',
   );
 
+  $items['admin/config/services/meteologic/default'] = array(
+    'title' => 'Settings',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -50,
+  );
+
+  // Add settings forms for submodules.
+  foreach (meteologic_forecast_providers() as $slug => $info) {
+    if (isset($info['settings']) && !empty($info['settings'])) {
+      $items["admin/config/services/meteologic/$slug"] = array(
+        'title' => $info['name'],
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array($info['settings']),
+        'access arguments' => array('administer meteologic'),
+        'type' => MENU_LOCAL_TASK,
+      );
+    }
+  }
+
+  $items['admin/config/services/meteologic/summary'] = array(
+    'title' => 'Summary',
+    'description' => 'Manage weather feeds.',
+    'page callback' => 'meteologic_summary_page',
+    'access arguments' => array('administer meteologic'),
+    'file' => 'meteologic.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 50,
+  );
+
   return $items;
 }
 
