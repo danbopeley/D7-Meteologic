@@ -101,6 +101,29 @@ function meteologic_menu() {
 }
 
 /**
+ * Implements hook_cron().
+ */
+function meteologic_cron() {
+  // Update forecasts.
+  watchdog('meteologic', 'Started cron forecast update', array(), WATCHDOG_INFO);
+  $queue = DrupalQueue::get('meteologic_update');
+  foreach (meteologic_forecast_providers() as $provider) {
+    $queue->createItem($provider);
+  }
+}
+
+/**
+ * Implements hook_cron_queue_info().
+ */
+function meteologic_cron_queue_info() {
+  return array(
+    'meteologic_update' => array(
+      'worker callback' => '_meteologic_update_forecast',
+      // Default time setting should be ok.
+    ),
+  );
+}
+
 /**
  * Implements hook_hook_info().
  */
