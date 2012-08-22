@@ -19,8 +19,40 @@ function meteologic_settings_form() {
 }
 
 /**
- * Form callback.
+ * Page callback.
+ * Displays meteologic provider settings home page.
+ *
+ * @see meteologic_menu()
+ */
+function meteologic_providers_page() {
+  drupal_set_title(t('Meteologic Providers'));
+  $page = array();
+
+  $links = array();
+  foreach (meteologic_forecast_providers() as $name => $info) {
+    if (isset($info['settings']) && !empty($info['settings'])) {
+      $links[] = array(
+        'title' => $info['name'],
+        'href' => "admin/config/services/meteologic/providers/{$name}",
+      );
+    }
+  }
+
+  $page['providers'] = array(
+    '#theme' => 'links',
+    '#links' => $links,
+    '#heading' => t('Configure settings for Meteologic providers'),
+    '#attributes' => array('id' => 'meteologic-settings-providers'),
+  );
+
+  return $page;
+}
+
+/**
+ * Page callback.
  * Displays meteologic summary page.
+ *
+ * @see meteologic_menu()
  */
 function meteologic_summary_page() {
   drupal_set_title(t('Meteologic Summary'));

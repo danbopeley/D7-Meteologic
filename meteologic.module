@@ -47,10 +47,24 @@ function meteologic_menu() {
     'weight' => -50,
   );
 
+  $items['admin/config/services/meteologic/providers'] = array(
+    'title' => 'Providers',
+    'page callback' => 'meteologic_providers_page',
+    'access arguments' => array('administer meteologic'),
+    'file' => 'meteologic.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  $items['admin/config/services/meteologic/providers/default'] = array(
+    'title' => 'Home',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -50,
+  );
+
   // Add settings forms for submodules.
   foreach (meteologic_forecast_providers() as $slug => $info) {
     if (isset($info['settings']) && !empty($info['settings'])) {
-      $items["admin/config/services/meteologic/$slug"] = array(
+      $items["admin/config/services/meteologic/providers/$slug"] = array(
         'title' => $info['name'],
         'page callback' => 'drupal_get_form',
         'page arguments' => array($info['settings']),
