@@ -46,6 +46,17 @@ function meteologic_menu() {
 
 /**
 /**
+ * Implements hook_hook_info().
+ */
+function meteologic_hook_info() {
+  return array(
+    'meteologic_provider_info' => array(
+      'group' => 'meteologic',
+    ),
+  );
+}
+
+/**
  * Returns a list of available forecast types.
  *
  * @return array
