@@ -109,7 +109,8 @@ function meteologic_cron() {
   // Update forecasts.
   watchdog('meteologic', 'Starting cron forecast update', array(), WATCHDOG_INFO);
   $queue = DrupalQueue::get('meteologic_update');
-  foreach (meteologic_forecast_providers() as $provider) {
+
+  foreach (meteologic_providers() as $provider) {
     $queue->createItem($provider);
   }
 }
@@ -143,20 +144,21 @@ function meteologic_hook_info() {
  * @return array
  *   An array of weather forecast types, keyed by machine name.
  */
-function meteologic_forecast_types() {
-  static $types;
+function meteologic_feeds() {
+  static $feeds;
 
-  if (!isset($types)) {
-    $types = array(
+  if (!isset($feeds)) {
+    $feeds = array(
       'current' => t('Current Conditions'),
       'point' => t('Point Forecast'),
       'radar' => t('Radar'),
     );
   }
 
+  // @TODO rewrite this to be a hook instead?
   // Enables hook_meteologic_forecast_type_alter().
-  drupal_alter(array('meteologic_forecast_type'), $types);
-  return $types;
+  drupal_alter(array('meteologic_forecast_type'), $feeds);
+  return $feeds;
 }
 
 /**
@@ -165,14 +167,16 @@ function meteologic_forecast_types() {
  * @return array
  *   An array of weather forecast providers, keyed by machine name.
  */
-function meteologic_forecast_providers() {
+function meteologic_providers() {
   static $providers;
 
   if (!isset($providers)) {
     $providers = array();
 
     foreach (module_implements('meteologic_provider_info') as $module) {
-      $providers += module_invoke($module, 'meteologic_provider_info');
+      foreach (module_invoke($module, 'meteologic_provider_info') as $name => $info) {
+          $providers[$name] = $info;
+      }
     }
   }
 

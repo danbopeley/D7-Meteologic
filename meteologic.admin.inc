@@ -29,7 +29,7 @@ function meteologic_providers_page() {
   $page = array();
 
   $links = array();
-  foreach (meteologic_forecast_providers() as $name => $info) {
+  foreach (meteologic_providers() as $name => $info) {
     if (isset($info['settings']) && !empty($info['settings'])) {
       $links[] = array(
         'title' => $info['name'],
@@ -58,16 +58,16 @@ function meteologic_summary_page() {
   drupal_set_title(t('Meteologic Summary'));
   $page = array();
 
-  $types = meteologic_forecast_types();
+  $feeds = meteologic_feeds();
   $page['types'] = array(
     '#theme' => 'item_list',
-    '#items' => !empty($types) ? $types : array(t('-none-')),
+    '#items' => !empty($feeds) ? $feeds : array(t('-none-')),
     '#title' => t('Forecast Types'),
     '#type' => 'ul',
   );
 
   $providers = array();
-  foreach (meteologic_forecast_providers() as $provider) {
+  foreach (meteologic_providers() as $provider) {
     $providers[] = $provider['name'];
   }
 
@@ -89,7 +89,7 @@ function meteologic_update_form() {
   $form = array();
 
   $options = array();
-  foreach (meteologic_forecast_providers() as $provider_slug => $provider_info) {
+  foreach (meteologic_providers() as $provider_slug => $provider_info) {
     $options[$provider_slug] = $provider_info['name'];
   }
 
