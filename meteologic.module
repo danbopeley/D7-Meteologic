@@ -277,7 +277,13 @@ function meteologic_update_forecasts_batch_finished($success, $results, $operati
  *   Whether the update was successful or not.
  */
 function _meteologic_update_forecast($provider) {
-  // @TODO write this function.
-  watchdog('meteologic', 'Updated forecast for provider: %name', array('%name' => $provider['name']), WATCHDOG_INFO);
-  return TRUE;
+  if ($object = new $provider['class']) {
+    if ($object->update()) {
+      watchdog('meteologic', 'Updated forecast for provider: %name', array('%name' => $provider['name']), WATCHDOG_INFO);
+      return TRUE;
+    }
+  }
+
+  watchdog('meteologic', 'Failed to update forecast for provider: %name', array('%name' => $provider['name']), WATCHDOG_ERROR);
+  return FALSE;
 }
