@@ -65,8 +65,8 @@ function meteologic_menu() {
     'weight' => -50,
   );
 
-  // Add settings forms for submodules.
-  foreach (meteologic_forecast_providers() as $slug => $info) {
+  // Add settings forms for providers.
+  foreach (meteologic_providers() as $slug => $info) {
     if (isset($info['settings']) && !empty($info['settings'])) {
       $items["admin/config/services/meteologic/providers/$slug"] = array(
         'title' => $info['name'],
@@ -107,7 +107,7 @@ function meteologic_menu() {
  */
 function meteologic_cron() {
   // Update forecasts.
-  watchdog('meteologic', 'Started cron forecast update', array(), WATCHDOG_INFO);
+  watchdog('meteologic', 'Starting cron forecast update', array(), WATCHDOG_INFO);
   $queue = DrupalQueue::get('meteologic_update');
   foreach (meteologic_forecast_providers() as $provider) {
     $queue->createItem($provider);
@@ -121,7 +121,7 @@ function meteologic_cron_queue_info() {
   return array(
     'meteologic_update' => array(
       'worker callback' => '_meteologic_update_forecast',
-      // Default time setting should be ok.
+      'time' => 60,
     ),
   );
 }
