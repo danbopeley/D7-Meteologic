@@ -148,17 +148,33 @@ function meteologic_feeds() {
   static $feeds;
 
   if (!isset($feeds)) {
-    $feeds = array(
-      'current' => t('Current Conditions'),
-      'point' => t('Point Forecast'),
-      'radar' => t('Radar'),
-    );
+    $feeds = array();
+
+    foreach (module_implements('meteologic_feed_info') as $module) {
+      foreach (module_invoke($module, 'meteologic_feed_info') as $name => $info) {
+        $feeds[$name] = $info;
+      }
+    }
   }
 
-  // @TODO rewrite this to be a hook instead?
-  // Enables hook_meteologic_forecast_type_alter().
-  drupal_alter(array('meteologic_forecast_type'), $feeds);
   return $feeds;
+}
+
+/**
+ * Implements hook_meteologic_feed_info().
+ *
+ * Define our default feeds.
+ *
+ * @see meteologic_feeds()
+ */
+function meteologic_meteologic_feed_info() {
+  return array(
+    'current' => array(
+      'name' => t('Current Conditions'),
+//      'blocks' => 1,
+//      'page' => TRUE,
+    ),
+  );
 }
 
 /**
@@ -175,7 +191,7 @@ function meteologic_providers() {
 
     foreach (module_implements('meteologic_provider_info') as $module) {
       foreach (module_invoke($module, 'meteologic_provider_info') as $name => $info) {
-          $providers[$name] = $info;
+        $providers[$name] = $info;
       }
     }
   }
