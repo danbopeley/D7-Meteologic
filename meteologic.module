@@ -168,12 +168,14 @@ function meteologic_hook_info() {
 }
 
 /**
- * Returns a list of available forecast feeds.
+ * Returns information on either a specified feed or all of them.
  *
+ * @param string
+ *   A feed name.
  * @return array
- *   An array of weather forecast feeds, keyed by machine name.
+ *   An array of feed information, keyed by name.
  */
-function meteologic_feeds() {
+function meteologic_feeds($feed = NULL) {
   static $feeds;
 
   if (!isset($feeds)) {
@@ -186,7 +188,7 @@ function meteologic_feeds() {
     }
   }
 
-  return $feeds;
+  return isset($feed) ? $feeds[$feed] : $feeds;
 }
 
 /**
@@ -237,12 +239,14 @@ function meteologic_meteologic_feed_info() {
 }
 
 /**
- * Returns a list of available forecast providers.
+ * Returns information on either a specified provider or all of them.
  *
+ * @param string
+ *   A provider name.
  * @return array
- *   An array of weather forecast providers, keyed by machine name.
+ *   An array of provider information, keyed by name.
  */
-function meteologic_providers() {
+function meteologic_providers($provider = NULL) {
   static $providers;
 
   if (!isset($providers)) {
@@ -255,7 +259,7 @@ function meteologic_providers() {
     }
   }
 
-  return $providers;
+  return isset($provider) ? $providers[$provider] : $providers;
 }
 
 /**
