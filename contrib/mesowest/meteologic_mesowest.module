@@ -13,7 +13,11 @@ function meteologic_mesowest_meteologic_provider_info() {
       'name' => t('Mesowest'),
       'class' => 'MeteologicMesoWest',
       'settings' => 'meteologic_mesowest_settings_form',
-      // @TODO other stuff
+      'feeds' => array(
+        'current' => array(
+          'path' => 'http://example.com/foo',
+        ),
+      ),
     ),
   );
 }

@@ -13,7 +13,11 @@ function meteologic_noaa_meteologic_provider_info() {
       'name' => t('NOAA'),
       'class' => 'MeteologicNOAA',
       'settings' => 'meteologic_noaa_settings_form',
-      // @TODO other stuff
+      'feeds' => array(
+        'current' => array(
+          'path' => 'http://example.com/foo',
+        ),
+      ),
     ),
   );
 }
