@@ -58,7 +58,10 @@ function meteologic_summary_page() {
   drupal_set_title(t('Meteologic Summary'));
   $page = array();
 
-  $feeds = meteologic_feeds();
+  $feeds = array();
+  foreach (meteologic_feeds() as $feed) {
+    $feeds[] = $feed['name'];
+  }
   $page['feeds'] = array(
     '#theme' => 'item_list',
     '#items' => !empty($feeds) ? $feeds : array(t('-none-')),
