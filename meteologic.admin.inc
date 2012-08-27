@@ -56,30 +56,56 @@ function meteologic_providers_page() {
  */
 function meteologic_summary_page() {
   drupal_set_title(t('Meteologic Summary'));
+  $meteologic_providers = meteologic_providers();
   $page = array();
 
-  $feeds = array();
-  foreach (meteologic_feeds() as $feed) {
-    $feeds[] = $feed['name'];
-  }
-  $page['feeds'] = array(
-    '#theme' => 'item_list',
-    '#items' => !empty($feeds) ? $feeds : array(t('-none-')),
-    '#title' => t('Feeds'),
-    '#type' => 'ul',
-  );
+  $header = array(t('Feed'));
+  $rows = array();
+//  $providers = array();
 
-  $providers = array();
-  foreach (meteologic_providers() as $provider) {
-    $providers[] = $provider['name'];
+  foreach ($meteologic_providers as $provider) {
+//    $providers[] = $provider['name'];
+    $header[] = $provider['name'];
   }
 
-  $page['providers'] = array(
-    '#theme' => 'item_list',
-    '#items' => !empty($providers) ? $providers : array(t('-none-')),
-    '#title' => t('Providers'),
-    '#type' => 'ul',
+//  $feeds = array();
+  foreach (meteologic_feeds() as $feed_slug => $feed) {
+//    $feeds[] = $feed['name'];
+    $temp = array($feed['name']);
+
+    foreach ($meteologic_providers as $provider) {
+      if (array_key_exists($feed_slug, $provider['feeds'])) {
+//        $temp[] = t('Yes');
+        $temp[] = 'x';
+      }
+      else {
+//        $temp[] = t('No');
+        $temp[] = '';
+      }
+    }
+
+    $rows[] = $temp;
+  }
+
+  $page['table'] = array(
+    '#theme' => 'table',
+    '#header' => $header,
+    '#rows' => $rows,
   );
+
+//  $page['providers'] = array(
+//    '#theme' => 'item_list',
+//    '#items' => !empty($providers) ? $providers : array(t('-none-')),
+//    '#title' => t('Providers'),
+//    '#type' => 'ul',
+//  );
+
+//  $page['feeds'] = array(
+//    '#theme' => 'item_list',
+//    '#items' => !empty($feeds) ? $feeds : array(t('-none-')),
+//    '#title' => t('Feeds'),
+//    '#type' => 'ul',
+//  );
 
   return $page;
 }
