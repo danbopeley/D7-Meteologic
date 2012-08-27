@@ -40,7 +40,7 @@ function meteologic_menu() {
     'title' => 'Meteologic',
     'description' => 'Manage weather feeds.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('meteologic_settings_form'),
+    'page arguments' => array('meteologic_form_settings'),
     'access arguments' => array('administer meteologic'),
     'file' => 'meteologic.admin.inc',
   );
@@ -53,7 +53,7 @@ function meteologic_menu() {
 
   $items['admin/config/services/meteologic/providers'] = array(
     'title' => 'Providers',
-    'page callback' => 'meteologic_providers_page',
+    'page callback' => 'meteologic_page_providers',
     'access arguments' => array('administer meteologic'),
     'file' => 'meteologic.admin.inc',
     'type' => MENU_LOCAL_TASK,
@@ -82,7 +82,7 @@ function meteologic_menu() {
     'title' => 'Feeds',
     'description' => 'Mangage feeds',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('meteologic_feeds_form'),
+    'page arguments' => array('meteologic_form_feeds'),
     'access arguments' => array('administer meteologic'),
     'file' => 'meteologic.admin.inc',
     'type' => MENU_LOCAL_TASK,

@@ -10,7 +10,7 @@
  *
  * @see meteologic_menu()
  */
-function meteologic_settings_form() {
+function meteologic_form_settings() {
   $form = array();
 
   // @TODO add vars as we know em.
@@ -24,7 +24,7 @@ function meteologic_settings_form() {
  *
  * @see meteologic_menu()
  */
-function meteologic_providers_page() {
+function meteologic_page_providers() {
   drupal_set_title(t('Meteologic Providers'));
   $page = array();
 
