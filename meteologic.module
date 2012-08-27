@@ -170,15 +170,27 @@ function meteologic_feeds() {
 function meteologic_meteologic_feed_info() {
   return array(
     'current' => array(
-      'name' => t('Current Conditions'),
+      'name' => t('Current conditions'),
 //      'blocks' => 1,
 //      'page' => TRUE,
     ),
     'point' => array(
-      'name' => t('Point Forecast'),
+      'name' => t('Point forecast'),
     ),
     'radar' => array(
       'name' => t('Radar'),
+    ),
+    'marine' => array(
+      'name' => t('Marine'),
+    ),
+    'extended' => array(
+      'name' => t('Extended forecast'),
+    ),
+    'tidal' => array(
+      'name' => t('Tidal'),
+    ),
+    'snow' => array(
+      'name' => t('Snow'),
     ),
   );
 }
