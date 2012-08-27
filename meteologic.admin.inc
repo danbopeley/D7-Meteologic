@@ -50,6 +50,45 @@ function meteologic_page_providers() {
 
 /**
  * Page callback.
+ * Displays meteologic feeds settings home page.
+ *
+ * @see meteologic_menu()
+ */
+function meteologic_page_feeds() {
+  drupal_set_title(t('Meteologic Feeds'));
+  $page = array();
+
+  $links = array();
+  foreach (meteologic_feeds() as $name => $info) {
+    $links[] = array(
+      'title' => $info['name'],
+      'href' => "admin/config/services/meteologic/feeds/{$name}",
+    );
+  }
+
+  $page['feeds'] = array(
+    '#theme' => 'links',
+    '#links' => $links,
+    '#heading' => t('Configure settings for Meteologic feeds'),
+    '#attributes' => array('id' => 'meteologic-settings-feeds'),
+  );
+
+  return $page;
+}
+
+/**
+ * Form callback.
+ * Display feed config form.
+ *
+ * @see meteologic_menu()
+ */
+function meteologic_form_feed_config($form, &$form_state, $feed) {
+  include_once drupal_get_path('module', 'devel') . '/krumo/class.krumo.php';
+  krumo($feed);
+}
+
+/**
+ * Page callback.
  * Displays meteologic summary page.
  *
  * @see meteologic_menu()
@@ -99,7 +138,6 @@ function meteologic_summary_page() {
 //    '#title' => t('Providers'),
 //    '#type' => 'ul',
 //  );
-
 //  $page['feeds'] = array(
 //    '#theme' => 'item_list',
 //    '#items' => !empty($feeds) ? $feeds : array(t('-none-')),
