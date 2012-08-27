@@ -14,7 +14,7 @@ function meteologic_help($path, $arg) {
     case 'admin/config/services/meteologic/update':
       return t('Here you can manually update all forecast information. Please use this with caution!');
     case 'admin/config/services/meteologic/summary':
-      return t('Here you can see a birds-eye view of what providers and forecast types are enabled.');
+      return t('Here you can see a birds-eye view of what feeds and providers are enabled.');
   }
 }
 
@@ -139,10 +139,10 @@ function meteologic_hook_info() {
 }
 
 /**
- * Returns a list of available forecast types.
+ * Returns a list of available forecast feeds.
  *
  * @return array
- *   An array of weather forecast types, keyed by machine name.
+ *   An array of weather forecast feeds, keyed by machine name.
  */
 function meteologic_feeds() {
   static $feeds;

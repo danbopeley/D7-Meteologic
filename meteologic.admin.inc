@@ -59,10 +59,10 @@ function meteologic_summary_page() {
   $page = array();
 
   $feeds = meteologic_feeds();
-  $page['types'] = array(
+  $page['feeds'] = array(
     '#theme' => 'item_list',
     '#items' => !empty($feeds) ? $feeds : array(t('-none-')),
-    '#title' => t('Forecast Types'),
+    '#title' => t('Feeds'),
     '#type' => 'ul',
   );
 
@@ -74,7 +74,7 @@ function meteologic_summary_page() {
   $page['providers'] = array(
     '#theme' => 'item_list',
     '#items' => !empty($providers) ? $providers : array(t('-none-')),
-    '#title' => t('Forecast Providers'),
+    '#title' => t('Providers'),
     '#type' => 'ul',
   );
 
