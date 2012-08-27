@@ -78,6 +78,34 @@ function meteologic_menu() {
     }
   }
 
+  $items['admin/config/services/meteologic/feeds'] = array(
+    'title' => 'Feeds',
+    'description' => 'Mangage feeds',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('meteologic_feeds_form'),
+    'access arguments' => array('administer meteologic'),
+    'file' => 'meteologic.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  $items['admin/config/services/meteologic/feeds/default'] = array(
+    'title' => 'Home',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -50,
+  );
+
+  // Add settings forms for feeds.
+  foreach (meteologic_feeds() as $slug => $info) {
+    $items["admin/config/services/meteologic/feeds/$slug"] = array(
+      'title' => $info['name'],
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('meteologic_form_feed_config'),
+      'access arguments' => array('administer meteologic'),
+      'file' => 'meteologic.admin.inc',
+      'type' => MENU_LOCAL_TASK,
+    );
+  }
+
   $items['admin/config/services/meteologic/update'] = array(
     'title' => 'Update',
     'description' => 'Update weather feeds.',
