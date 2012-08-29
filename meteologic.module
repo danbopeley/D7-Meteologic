@@ -13,6 +13,10 @@ function meteologic_help($path, $arg) {
       return t('Meteologic is primarily an API module. It provides a framework for providers to consume external feather feeds.');
     case 'admin/config/services/meteologic':
       return t('Here you can configure settings for your feeds, providers and general Meteologic behavior.');
+    case 'admin/config/services/meteologic/feeds':
+      return t('Here you can configure settings for your feeds, including selecting a default provider.');
+    case 'admin/config/services/meteologic/providers':
+      return t('Here you can configure settings for your providers.');
     case 'admin/config/services/meteologic/update':
       return t('Here you can manually update all feeds. Please use this with caution!');
     case 'admin/config/services/meteologic/summary':
