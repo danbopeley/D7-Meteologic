@@ -276,12 +276,12 @@ function meteologic_block_view($delta = '') {
   if (isset($provider_info['feeds'][$feed]['theme']['block'])) {
     $theme_callback = $provider_info['feeds'][$feed]['theme']['block'];
 
-    // @TODO move this logic into a preprocess function.
-    $data = meteologic_get_data($feed, $provider);
     $block['subject'] = $subject;
     $block['content'] = array(
       '#theme' => $theme_callback,
-      '#data' => $data,
+      '#pre_render' => array('meteologic_pre_render'),
+      '#meteologic_feed' => $feed,
+      '#meteologic_provider' => $provider,
     );
 
     return $block;
@@ -293,6 +293,17 @@ function meteologic_block_view($delta = '') {
     '%provider' => $provider_info['name'],
     ), WATCHDOG_ERROR);
   return array();
+}
+
+/**
+ * Pre render callback.
+ * Used to populate the #data variable before rendering feed data.
+ *
+ * @see meteologic_block_view()
+ */
+function meteologic_pre_render($elements) {
+  $elements['#data'] = meteologic_get_data($elements['#meteologic_feed'], $elements['#meteologic_provider']);
+  return $elements;
 }
 
 /**
