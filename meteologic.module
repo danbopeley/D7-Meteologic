@@ -458,18 +458,8 @@ function meteologic_get_feed($feed, $provider = NULL) {
   $has_provider = isset($provider);
 
   if (!$has_provider) {
-    // Load default provider.
-    $provider = reset(array_keys(variable_get("meteologic_weight_{$feed}", array())));
-
-    // If weights have never been set we need to figure it out ourselves.
-    if (empty($provider)) {
-      $feed_info = meteologic_feeds($feed);
-      if (!empty($feed_info['providers'])) {
-        $provider = reset($feed_info['providers']);
-      }
-      else {
-        return FALSE;
-      }
+    if (!$provider = meteologic_provider_default($feed)) {
+      return FALSE;
     }
   }
 
@@ -488,7 +478,6 @@ function meteologic_get_feed($feed, $provider = NULL) {
         $cache_key = "meteologic_{$feed}_{$provider}_result";
 
         // @TODO implement authentication?
-
         // Check Drupal's cache.
         if ($cache = cache_get($cache_key)) {
           if (!empty($cache->data)) {
@@ -513,4 +502,27 @@ function meteologic_get_feed($feed, $provider = NULL) {
   }
 
   return FALSE;
+}
+
+/**
+ * Returns the default provider for a given feed.
+ *
+ * @param string
+ *   The feed.
+ * @return string|FALSE
+ *   The default provider or FALSE if we couldn't find it.
+ */
+function meteologic_provider_default($feed) {
+  // Load default provider.
+  $provider = reset(array_keys(variable_get("meteologic_weight_{$feed}", array())));
+
+  // If weights have never been set we need to figure it out ourselves.
+  if (empty($provider)) {
+    $feed_info = meteologic_feeds($feed);
+    if (!empty($feed_info['providers'])) {
+      $provider = reset($feed_info['providers']);
+    }
+  }
+
+  return !empty($provider) ? $provider : FALSE;
 }
