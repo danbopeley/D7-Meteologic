@@ -136,6 +136,26 @@ function meteologic_menu() {
     'weight' => 50,
   );
 
+  $metelogic_page_path = variable_get('metelogic_page_path', 'meteologic');
+
+  if (variable_get('meteologic_page_enable', FALSE)) {
+    // Generate custom pages.
+    foreach (meteologic_feeds() as $feed => $feed_info) {
+      if (variable_get('meteologic_feed_pages', FALSE)) {
+        $providers = meteologic_providers();
+
+        foreach ($feed_info['providers'] as $provider) {
+          $items[$metelogic_page_path . "/{$feed}/{$provider}"] = array(
+            'title' => "{$providers[$provider]['name']} {$feed_info['name']}",
+            'page callback' => 'theme',
+            'page arguments' => array($providers[$provider]['feeds'][$feed]['theme']['page']),
+            'access arguments' => array('access content'),
+          );
+        }
+      }
+    }
+  }
+
   return $items;
 }
 
