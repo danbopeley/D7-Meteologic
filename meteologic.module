@@ -242,7 +242,7 @@ function meteologic_block_view($delta = '') {
     }
 
     // @TODO move this logic into a generic preprocess?
-    $data = meteologic_get_feed($delta, $provider);
+    $data = meteologic_get_data($delta, $provider);
     $block['subject'] = $feeds[$delta]['name']; // Don't bother translating.
     $block['content'] = array(
       '#theme' => $theme_callback,
@@ -450,7 +450,7 @@ function _meteologic_update_forecast($provider) {
  * @return array
  *   An array of feed data.
  */
-function meteologic_get_feed($feed, $provider = NULL) {
+function meteologic_get_data($feed, $provider = NULL) {
   // Good ol' static cache.
   static $results;
 
