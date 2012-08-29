@@ -32,11 +32,35 @@ function meteologic_form_settings() {
     '#collapsible' => FALSE,
   );
 
+  $form['pages']['meteologic_page_enable'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable pages'),
+    '#description' => t('Enable this to get pages as well as blocks for each meteologic feed.'),
+    '#default_value' => variable_get('meteologic_page_enable', FALSE),
+  );
+
+  $form['pages']['metelogic_page_path'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Base path for pages'),
+    '#description' => t('Define a base path for Meteologic feed pages. The default is "meteologic", so each feed would have a URL like this: meteologic/current, meteologic/current/radar and so on.'),
+    '#default_value' => variable_get('metelogic_page_path', 'meteologic'),
+    '#states' => array(
+      'visible' => array(
+        'input[name="meteologic_page_enable"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
+
   $form['pages']['meteologic_feed_pages'] = array(
     '#type' => 'checkbox',
     '#title' => t('Generate a page for each feed and provider'),
     '#description' => t('By default only a single page for each feed is generated, using the selected provider. Check ths option so that regardless of which feeds and providers are enabled, a page will generated each valid combination.'),
     '#default_value' => variable_get('meteologic_feed_pages', FALSE),
+    '#states' => array(
+      'visible' => array(
+        'input[name="meteologic_page_enable"]' => array('checked' => TRUE),
+      ),
+    ),
   );
 
   $form['misc'] = array(
