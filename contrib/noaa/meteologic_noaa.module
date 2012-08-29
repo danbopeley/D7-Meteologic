@@ -14,7 +14,7 @@ function meteologic_noaa_meteologic_provider_info() {
       'settings' => 'meteologic_noaa_settings_form',
       'feeds' => array(
         'current' => array(
-          'path' => 'http://example.com/foo',
+          'path' => 'http://w1.weather.gov/xml/current_obs/@station.xml',
         ),
       ),
       'stations' => array(
