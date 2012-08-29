@@ -492,6 +492,7 @@ function meteologic_get_data($feed, $provider = NULL) {
           }
         }
 
+        // Let' try to keep it simple for now.
         if ($xml = simplexml_load_file($path)) {
           // Convert XML to array.
           // @see http://gaarf.info/2009/08/13/xml-string-to-php-array/
@@ -500,6 +501,7 @@ function meteologic_get_data($feed, $provider = NULL) {
           $results[$feed][$provider] = $array;
 
           if (variable_get('meteologic_dev', TRUE)) {
+            $feed_info = meteologic_feeds($feed);
             watchdog('meteologic', 'Retrieved data for feed: %feed from provider: %provider', array(
               '%feed' => $feed_info['name'],
               '%provider' => $provider_info['name'],
