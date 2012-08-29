@@ -83,8 +83,102 @@ function meteologic_page_feeds() {
  * @see meteologic_menu()
  */
 function meteologic_form_feed_config($form, &$form_state, $feed) {
-  include_once drupal_get_path('module', 'devel') . '/krumo/class.krumo.php';
-  krumo($feed);
+  $form = array();
+  $feed_info = meteologic_feeds($feed);
+  drupal_set_title(t('Meteologic - @name feed', array('@name' => $feed_info['name'])));
+
+  $form['enabled'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Enabled Providers'),
+    '#description' => t('Enable or disable providers for the @name feed.', array('@name' => $feed_info['name'])),
+    '#collapsible' => FALSE,
+    '#tree' => TRUE,
+  );
+
+  $form['order'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Provider priority'),
+    '#description' => t('If multiple providers are enabled, which one should we use?'),
+    '#collapsible' => FALSE,
+  );
+
+  $varname = "meteologic_fallback_{$feed}";
+
+  $form_state['meteologic_feed'] = $feed;
+
+  $form['order'][$varname] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Fallback if unavailable'),
+    '#description' => t('If the selected provider is unavailable, display the results for the next available one.'),
+    '#default_value' => variable_get($varname, FALSE),
+  );
+
+  $form['order']['providers'] = array(
+    '#tree' => TRUE,
+  );
+
+  $meteologic_providers = meteologic_providers();
+
+  foreach ($meteologic_providers as $slug => $info) {
+    $varname = "meteologic_{$feed}_{$slug}";
+
+    $form['enabled'][$varname] = array(
+      '#type' => 'checkbox',
+      '#title' => $info['name'],
+      '#default_value' => variable_get($varname, TRUE),
+    );
+  }
+
+  $weights = variable_get("meteologic_weight_{$feed}", array());
+
+  foreach ($weights as $slug => $weight) {
+    $form['order']['providers'][$slug] = array(
+      'name' => array(
+        '#markup' => $meteologic_providers[$slug]['name'],
+      ),
+      'weight' => array(
+        '#type' => 'weight',
+        '#title' => t('Weight'),
+        '#default_value' => $weight,
+        '#delta' => 10,
+        '#title-display' => 'invisible',
+      ),
+    );
+  }
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array( '#type' => 'submit', '#value' => t('Save Changes'));
+
+  return $form;
+}
+
+/**
+ * Submit callback.
+ *
+ * @see meteologic_form_feed_config()
+ */
+function meteologic_form_feed_config_submit(&$form, &$form_state) {
+  $values =& $form_state['values'];
+  $feed = $form_state['meteologic_feed'];
+
+  // Fallback variable.
+  $varname = "meteologic_fallback_{$feed}";
+  variable_set($varname, $values[$varname]);
+
+  // Enabled providers.
+  foreach ($values['enabled'] as $provider => $status) {
+    variable_set($provider, $status);
+  }
+
+  // Provider order.
+  $order = array();
+
+  foreach ($values['providers'] as $slug => $info) {
+    $order[$slug] = $info['weight'];
+  }
+
+  asort($order);
+  variable_set("meteologic_weight_{$feed}", $order);
 }
 
 /**
