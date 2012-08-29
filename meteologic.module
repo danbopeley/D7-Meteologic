@@ -219,7 +219,7 @@ function meteologic_block_info() {
       $providers = meteologic_providers();
 
       foreach ($feed_info['providers'] as $provider) {
-        $info["{$feed}_{$provider}"] = array(
+        $info["{$feed}___{$provider}"] = array(
           'info' => t('Meteologic Extra: @feed by @provider', array(
             '@feed' => $feed_info['name'],
             '@provider' => $providers[$provider]['name'],
@@ -242,29 +242,37 @@ function meteologic_block_view($delta = '') {
 
   // Are we displaying the standard block?
   if (array_key_exists($delta, $feeds)) {
+    $feed = $delta;
     $provider = meteologic_provider_default($delta);
     $provider_info = meteologic_providers($provider);
+    $subject = $feeds[$feed]['name'];
+  }
+  else {
+    list($feed, $provider) = explode('___', $delta);
+    $provider_info = meteologic_providers($provider);
+    $subject = "{$provider_info['name']} {$feeds[$feed]['name']}";
+  }
 
-    if (isset($provider_info['feeds'][$delta]['theme']['block'])) {
-      $theme_callback = $provider_info['feeds'][$delta]['theme']['block'];
-    }
-    else {
-      $theme_callback = "meteologic_default_{$delta}";
-    }
+  if (isset($provider_info['feeds'][$delta]['theme']['block'])) {
+    $theme_callback = $provider_info['feeds'][$delta]['theme']['block'];
 
     // @TODO move this logic into a generic preprocess?
     $data = meteologic_get_data($delta, $provider);
-    $block['subject'] = $feeds[$delta]['name']; // Don't bother translating.
+    $block['subject'] = $subject;
     $block['content'] = array(
       '#theme' => $theme_callback,
       '#data' => $data,
     );
-  }
-  else {
-    // @TODO handle custom blocks.
+
+    return $block;
   }
 
-  return $block;
+  // If we get this far something went wrong.
+  watchdog('meteologic', 'Missing theme callback for feed: %feed from provider: %provider', array(
+    '%feed' => $feeds[$feed]['name'],
+    '%provider' => $provider_info['name'],
+    ), WATCHDOG_ERROR);
+  return array();
 }
 
 /**
@@ -483,7 +491,6 @@ function meteologic_get_data($feed, $provider = NULL) {
         $cache_key = "meteologic_{$feed}_{$provider}_result";
 
         // @TODO implement authentication?
-
         // Check Drupal's cache.
         if ($cache = cache_get($cache_key)) {
           if (!empty($cache->data)) {
@@ -505,7 +512,7 @@ function meteologic_get_data($feed, $provider = NULL) {
             watchdog('meteologic', 'Retrieved data for feed: %feed from provider: %provider', array(
               '%feed' => $feed_info['name'],
               '%provider' => $provider_info['name'],
-            ), WATCHDOG_INFO);
+              ), WATCHDOG_INFO);
           }
           return $array;
         }
@@ -517,7 +524,7 @@ function meteologic_get_data($feed, $provider = NULL) {
           watchdog('meteologic', 'Failed to get data for feed: %feed from provider: %provider', array(
             '%feed' => $feed_info['name'],
             '%provider' => $provider_info['name'],
-          ), WATCHDOG_ERROR);
+            ), WATCHDOG_ERROR);
         }
       }
     }
