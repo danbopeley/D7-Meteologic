@@ -95,54 +95,66 @@ function meteologic_form_feed_config($form, &$form_state, $feed) {
     '#tree' => TRUE,
   );
 
-  $form['order'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Provider priority'),
-    '#description' => t('If multiple providers are enabled, which one should we use?'),
-    '#collapsible' => FALSE,
-  );
-
   $varname = "meteologic_fallback_{$feed}";
-
   $form_state['meteologic_feed'] = $feed;
 
-  $form['order'][$varname] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Fallback if unavailable'),
-    '#description' => t('If the selected provider is unavailable, display the results for the next available one.'),
-    '#default_value' => variable_get($varname, FALSE),
-  );
-
-  $form['order']['providers'] = array(
-    '#tree' => TRUE,
-  );
-
   $meteologic_providers = meteologic_providers();
+  $provider_count = 0;
 
   foreach ($meteologic_providers as $slug => $info) {
-    $varname = "meteologic_{$feed}_{$slug}";
+    if (array_key_exists($feed, $info['feeds'])) {
+      ++$provider_count;
+      $varname = "meteologic_{$feed}_{$slug}";
 
-    $form['enabled'][$varname] = array(
-      '#type' => 'checkbox',
-      '#title' => $info['name'],
-      '#default_value' => variable_get($varname, TRUE),
-    );
+      $form['enabled'][$varname] = array(
+        '#type' => 'checkbox',
+        '#title' => $info['name'],
+        '#default_value' => variable_get($varname, TRUE),
+      );
+    }
   }
 
-  $weights = variable_get("meteologic_weight_{$feed}", array());
+  if ($provider_count > 0) {
+    $form['order'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Provider priority'),
+      '#description' => t('If multiple providers are enabled, which one should we use?'),
+      '#collapsible' => FALSE,
+    );
 
-  foreach ($weights as $slug => $weight) {
-    $form['order']['providers'][$slug] = array(
-      'name' => array(
-        '#markup' => $meteologic_providers[$slug]['name'],
-      ),
-      'weight' => array(
-        '#type' => 'weight',
-        '#title' => t('Weight'),
-        '#default_value' => $weight,
-        '#delta' => 10,
-        '#title-display' => 'invisible',
-      ),
+    $form['order'][$varname] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Fallback if unavailable'),
+      '#description' => t('If the selected provider is unavailable, display the results for the next available one.'),
+      '#default_value' => variable_get($varname, FALSE),
+    );
+
+    $form['order']['providers'] = array(
+      '#tree' => TRUE,
+    );
+
+    $weights = variable_get("meteologic_weight_{$feed}", array());
+
+    foreach ($weights as $slug => $weight) {
+      $form['order']['providers'][$slug] = array(
+        'name' => array(
+          '#markup' => $meteologic_providers[$slug]['name'],
+        ),
+        'weight' => array(
+          '#type' => 'weight',
+          '#title' => t('Weight'),
+          '#default_value' => $weight,
+          '#delta' => 10,
+          '#title-display' => 'invisible',
+        ),
+      );
+    }
+  }
+  else {
+    $form['enabled']['empty'] = array(
+      '#prefix' => '<div class="empty">',
+      '#suffix' => '</div>',
+      '#markup' => t('No providers implement this feed!'),
     );
   }
 
