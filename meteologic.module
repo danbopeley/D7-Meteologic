@@ -147,8 +147,13 @@ function meteologic_menu() {
         foreach ($feed_info['providers'] as $provider) {
           $items[$metelogic_page_path . "/{$feed}/{$provider}"] = array(
             'title' => "{$providers[$provider]['name']} {$feed_info['name']}",
-            'page callback' => 'theme',
-            'page arguments' => array($providers[$provider]['feeds'][$feed]['theme']['page']),
+            'page callback' => '_meteologic_render_page',
+            'page arguments' => array(
+              $feed,
+              $provider,
+              $providers[$provider]['feeds'][$feed]['theme']['page'],
+            ),
+            // @TODO do we really need specific permissions for each feed?
             'access arguments' => array('access content'),
           );
         }
@@ -157,6 +162,22 @@ function meteologic_menu() {
   }
 
   return $items;
+}
+
+/**
+ * Page callback.
+ * This is just an intermediate step so we can properly add the data and pass
+ * the render array along.
+ *
+ * @see meteologic_menu()
+ */
+function _meteologic_render_page($feed, $provider, $theme) {
+  return array(
+    '#theme' => $theme,
+    '#pre_render' => array('meteologic_pre_render'),
+    '#meteologic_feed' => $feed,
+    '#meteologic_provider' => $provider,
+  );
 }
 
 /**
