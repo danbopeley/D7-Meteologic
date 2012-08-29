@@ -171,12 +171,22 @@ function meteologic_hook_info() {
  * Implements hook_theme().
  */
 function meteologic_theme() {
-  return array(
+  $theme = array(
     'meteologic_form_feed_config' => array(
       'render element' => 'form',
       'file' => 'meteologic.theme.inc',
     ),
   );
+
+  // Provide default theme implementations for default feeds.
+  foreach (meteologic_meteologic_feed_info() as $slug => $info) {
+    $theme["meteologic_default_{$slug}"] = array(
+      'variables' => array('data' => array()),
+      'file' => 'meteologic.theme.inc',
+    );
+  }
+
+  return $theme;
 }
 
 /**
