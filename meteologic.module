@@ -273,11 +273,11 @@ function meteologic_block_view($delta = '') {
     $subject = "{$provider_info['name']} {$feeds[$feed]['name']}";
   }
 
-  if (isset($provider_info['feeds'][$delta]['theme']['block'])) {
-    $theme_callback = $provider_info['feeds'][$delta]['theme']['block'];
+  if (isset($provider_info['feeds'][$feed]['theme']['block'])) {
+    $theme_callback = $provider_info['feeds'][$feed]['theme']['block'];
 
-    // @TODO move this logic into a generic preprocess?
-    $data = meteologic_get_data($delta, $provider);
+    // @TODO move this logic into a preprocess function.
+    $data = meteologic_get_data($feed, $provider);
     $block['subject'] = $subject;
     $block['content'] = array(
       '#theme' => $theme_callback,
