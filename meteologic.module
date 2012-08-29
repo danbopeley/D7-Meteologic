@@ -168,6 +168,18 @@ function meteologic_hook_info() {
 }
 
 /**
+ * Implements hook_theme().
+ */
+function meteologic_theme() {
+  return array(
+    'meteologic_form_feed_config' => array(
+      'render element' => 'form',
+      'file' => 'meteologic.theme.inc',
+    ),
+  );
+}
+
+/**
  * Returns information on either a specified feed or all of them.
  *
  * @param string
