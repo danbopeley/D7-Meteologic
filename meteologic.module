@@ -152,7 +152,7 @@ function meteologic_cron() {
 function meteologic_cron_queue_info() {
   return array(
     'meteologic_update' => array(
-      'worker callback' => '_meteologic_update_forecast',
+      'worker callback' => '_meteologic_update_feed',
       'time' => 60,
     ),
   );
@@ -356,16 +356,16 @@ function meteologic_providers($provider = NULL) {
  * @param array
  *   An array of provider machine names.
  */
-function meteologic_update_forecasts(array $providers) {
+function meteologic_update_feeds(array $providers) {
   // Use Batch API to update each one.
   batch_set(array(
-    'title' => t('Updating Meteologic forecasts...'),
+    'title' => t('Updating Meteologic feeds...'),
     'operations' => array(
-      array('meteologic_update_forecasts_batch', $providers)
+      array('meteologic_update_feeds_batch', $providers)
     ),
     'progress_message' => t('Updated @current of @total.'),
-    'error_message' => t('An error has occurred updating forecast information. Please check the site logs for more information.'),
-    'finished' => 'meteologic_update_forecasts_batch_finished',
+    'error_message' => t('An error has occurred updating feed information. Please check the site logs for more information.'),
+    'finished' => 'meteologic_update_feeds_batch_finished',
   ));
 
   // Start batch and redirect to update form when we're done.
@@ -376,9 +376,9 @@ function meteologic_update_forecasts(array $providers) {
  * Batch operation callback.
  * Updates forecast information for each provider.
  *
- * @see meteologic_update_forecasts()
+ * @see meteologic_update_feeds()
  */
-function meteologic_update_forecasts_batch($providers, &$context) {
+function meteologic_update_feeds_batch($providers, &$context) {
   // Init sandbox info.
   if (empty($context['sandbox'])) {
     $context['sandbox'] = array();
@@ -389,7 +389,7 @@ function meteologic_update_forecasts_batch($providers, &$context) {
   // Process a single provider.
   $current = $providers[$context['sandbox']['progress']];
   // @TODO store errors somewhere to display after batch finishes?
-  _meteologic_update_forecast($current);
+  _meteologic_update_feed($current);
   ++$context['sandbox']['progress'];
 
   // Check if the batch is finished
@@ -402,9 +402,9 @@ function meteologic_update_forecasts_batch($providers, &$context) {
  * Batch finished callback.
  * Display confirmation message once update batch operation finished.
  *
- * @see meteologic_update_forecasts()
+ * @see meteologic_update_feeds()
  */
-function meteologic_update_forecasts_batch_finished($success, $results, $operations, $elapsed) {
+function meteologic_update_feeds_batch_finished($success, $results, $operations, $elapsed) {
   if ($success) {
     drupal_set_message(t('Updated forecast information!'));
   }
@@ -417,26 +417,20 @@ function meteologic_update_forecasts_batch_finished($success, $results, $operati
 }
 
 /**
- * Updates forecast information for a specific provider.
+ * Updates forecast information for a specific feed.
  * This function shouldn't be called directly unless you know what you are
  * doing! If all you want to do is update the forecast information manually
  * please consider visiting the settings page at "admin/config/services/update".
  *
  * @param string
+ *   The feed's machine name.
+ * @param string
  *   The provider's machine name.
  * @return boolean
  *   Whether the update was successful or not.
  */
-function _meteologic_update_forecast($provider) {
-//  if ($object = new $provider['class']) {
-//    if ($object->update()) {
-//      watchdog('meteologic', 'Updated forecast for provider: %name', array('%name' => $provider['name']), WATCHDOG_INFO);
-//      return TRUE;
-//    }
-//  }
-//
-//  watchdog('meteologic', 'Failed to update forecast for provider: %name', array('%name' => $provider['name']), WATCHDOG_ERROR);
-//  return FALSE;
+function _meteologic_update_feed($feed, $provider = NULL) {
+  // @TODO deal with default provider or updating all feeds.
   // @TODO do this.
   return TRUE;
 }

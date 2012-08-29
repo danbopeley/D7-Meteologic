@@ -303,5 +303,5 @@ function meteologic_update_form_submit($form, &$form_state) {
     }
   }
 
-  meteologic_update_forecasts($providers);
+  meteologic_update_feeds($providers);
 }
