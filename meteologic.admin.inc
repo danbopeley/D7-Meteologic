@@ -99,22 +99,18 @@ function meteologic_form_feed_config($form, &$form_state, $feed) {
   $form_state['meteologic_feed'] = $feed;
 
   $meteologic_providers = meteologic_providers();
-  $provider_count = 0;
 
-  foreach ($meteologic_providers as $slug => $info) {
-    if (array_key_exists($feed, $info['feeds'])) {
-      ++$provider_count;
-      $varname = "meteologic_{$feed}_{$slug}";
+  foreach ($feed_info['providers'] as $slug) {
+    $varname = "meteologic_{$feed}_{$slug}";
 
-      $form['enabled'][$varname] = array(
-        '#type' => 'checkbox',
-        '#title' => $info['name'],
-        '#default_value' => variable_get($varname, TRUE),
-      );
-    }
+    $form['enabled'][$varname] = array(
+      '#type' => 'checkbox',
+      '#title' => $meteologic_providers[$slug]['name'],
+      '#default_value' => variable_get($varname, TRUE),
+    );
   }
 
-  if ($provider_count > 0) {
+  if (count($feed_info['providers']) > 0) {
     $form['order'] = array(
       '#type' => 'fieldset',
       '#title' => t('Provider priority'),
