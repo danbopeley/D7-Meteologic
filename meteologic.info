@@ -2,7 +2,6 @@ name = Meteologic
 description = Provides a framework for reading external weather feeds.
 package = Weather
 version = 7.x-1.0-dev
-files[] = includes/meteologic_provider.inc
 
 ; Left intentionally for development.
 core = 7.x
