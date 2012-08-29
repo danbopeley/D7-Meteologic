@@ -11,12 +11,15 @@ function meteologic_noaa_meteologic_provider_info() {
   return array(
     'noaa' => array(
       'name' => t('NOAA'),
-      'class' => 'MeteologicNOAA',
       'settings' => 'meteologic_noaa_settings_form',
       'feeds' => array(
         'current' => array(
           'path' => 'http://example.com/foo',
         ),
+      ),
+      'stations' => array(
+        'weather' => 'meteologic_noaa_stations_weather',
+        'radar' => 'meteologic_noaa_stations_radar',
       ),
     ),
   );
@@ -32,4 +35,24 @@ function meteologic_noaa_settings_form() {
   // @TODO insert options here.
 
   return system_settings_form($form);
+}
+
+/**
+ * Returns a list of weather stations for the NOAA provider.
+ * This is a wrapper around _meteologic_noaa_stations_weather(), which allows
+ * us to lazy-load the extra big file.
+ */
+function meteologic_noaa_stations_weather() {
+  module_load_include('inc', 'meteologic_noaa', 'meteologic_noaa_stations');
+  return _meteologic_noaa_stations_weather();
+}
+
+/**
+ * Returns a list of radar stations for the NOAA provider.
+ * This is a wrapper around _meteologic_noaa_stations_radar(), which allows
+ * us to lazy-load the extra big file.
+ */
+function meteologic_noaa_stations_radar() {
+  module_load_include('inc', 'meteologic_noaa', 'meteologic_noaa_stations');
+  return _meteologic_noaa_stations_radar();
 }
