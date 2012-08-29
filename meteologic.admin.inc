@@ -122,7 +122,7 @@ function meteologic_page_feeds() {
 function meteologic_form_feed_config($form, &$form_state, $feed) {
   $form = array();
   $feed_info = meteologic_feeds($feed);
-  drupal_set_title(t('Meteologic - @name feed', array('@name' => $feed_info['name'])));
+  drupal_set_title(t('Meteologic Feeds - @name feed', array('@name' => $feed_info['name'])));
 
   $form['enabled'] = array(
     '#type' => 'fieldset',
