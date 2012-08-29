@@ -13,7 +13,12 @@
 function meteologic_form_settings() {
   $form = array();
 
-  // @TODO add vars as we know em.
+  $form['meteologic_feed_blocks'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Generate a block for each feed and provider'),
+    '#description' => t('Regardless of which feeds and providers are enabled, generate a block for each valid combination.'),
+    '#default_value' => variable_get('meteologic_feed_blocks', FALSE),
+  );
 
   return system_settings_form($form);
 }
