@@ -16,8 +16,8 @@ function meteologic_noaa_meteologic_provider_info() {
         'current' => array(
           'path' => 'http://w1.weather.gov/xml/current_obs/@station.xml',
           'theme' => array(
-            'block' => 'meteologic_noaa_current_block',
-            'page' => 'meteologic_noaa_current_page',
+            'block' => 'meteologic_noaa_current',
+            'page' => 'meteologic_noaa_current',
           ),
         ),
       ),
@@ -68,11 +68,7 @@ function meteologic_noaa_stations_radar() {
  */
 function meteologic_noaa_theme($existing, $type, $theme, $path) {
   return array(
-    'meteologic_noaa_current_block' => array(
-      'variables' => array('data' => array()),
-      'file' => 'meteologic_noaa.theme.inc',
-    ),
-    'meteologic_noaa_current_page' => array(
+    'meteologic_noaa_current' => array(
       'variables' => array('data' => array()),
       'file' => 'meteologic_noaa.theme.inc',
     ),
