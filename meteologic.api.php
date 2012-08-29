@@ -20,11 +20,21 @@ function hook_meteologic_provider_info() {
         'current' => array(
           // Feed path.
           'path' => 'http://example.com/foo',
+          // Theme functions.
+          // You can specify a different function for both themes and blocks
+          // or just specify a single callback for both.
+          'theme' => array(
+            'block' => 'foo_current_block',
+            'page' => 'foo_current_page',
+          ),
         ),
       ),
       // Stations callback.
+      // You most likely just need to implement the "weather" callback.
+      // However, some providers have different stations for radar feeds.
       'stations' => array(
-
+        'weather' => 'foo_stations_weather',
+        'radar' => 'foo_stations_radar',
       ),
     ),
   );
