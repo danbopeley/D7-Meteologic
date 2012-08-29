@@ -14,7 +14,7 @@ function meteologic_mesowest_meteologic_provider_info() {
       'settings' => 'meteologic_mesowest_settings_form',
       'feeds' => array(
         'current' => array(
-          'path' => 'http://example.com/foo',
+          'path' => 'http://mesowest.utah.edu/cgi-bin/droman/xml_get_monitor_data_dev.cgi?stn=@station&searchtype=mostrecent&currentorpast=current',
         ),
       ),
     ),
