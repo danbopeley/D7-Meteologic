@@ -21,8 +21,8 @@ function hook_meteologic_provider_info() {
           // Feed path.
           'path' => 'http://example.com/foo',
           // Theme functions.
-          // You can specify a different function for both themes and blocks
-          // or just specify a single callback for both.
+          // Specify a callback function for both themes and blocks. If there's
+          // no change just specify the same one twice.
           'theme' => array(
             'block' => 'foo_current_block',
             'page' => 'foo_current_page',
