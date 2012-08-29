@@ -13,21 +13,39 @@
 function meteologic_form_settings() {
   $form = array();
 
-  $form['meteologic_feed_blocks'] = array(
+  $form['blocks'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Blocks'),
+    '#collapsible' => FALSE,
+  );
+
+  $form['blocks']['meteologic_feed_blocks'] = array(
     '#type' => 'checkbox',
     '#title' => t('Generate a block for each feed and provider'),
     '#description' => t('Regardless of which feeds and providers are enabled, generate a block for each valid combination.'),
     '#default_value' => variable_get('meteologic_feed_blocks', FALSE),
   );
 
-  $form['meteologic_feed_pages'] = array(
+  $form['pages'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Pages'),
+    '#collapsible' => FALSE,
+  );
+
+  $form['pages']['meteologic_feed_pages'] = array(
     '#type' => 'checkbox',
     '#title' => t('Generate a page for each feed and provider'),
     '#description' => t('Regardless of which feeds and providers are enabled, generate a page for each valid combination.'),
     '#default_value' => variable_get('meteologic_feed_pages', FALSE),
   );
 
-  $form['meteologic_dev'] = array(
+  $form['misc'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Misc'),
+    '#collapsible' => FALSE,
+  );
+
+  $form['misc']['meteologic_dev'] = array(
     '#type' => 'checkbox',
     '#title' => t('Development mode'),
     '#description' => t('Development mode logs more watchdog entries such as debug statments whereas production will only log errors.'),
