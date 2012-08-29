@@ -20,6 +20,13 @@ function meteologic_form_settings() {
     '#default_value' => variable_get('meteologic_feed_blocks', FALSE),
   );
 
+  $form['meteologic_feed_pages'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Generate a page for each feed and provider'),
+    '#description' => t('Regardless of which feeds and providers are enabled, generate a page for each valid combination.'),
+    '#default_value' => variable_get('meteologic_feed_pages', FALSE),
+  );
+
   $form['meteologic_dev'] = array(
     '#type' => 'checkbox',
     '#title' => t('Development mode'),
