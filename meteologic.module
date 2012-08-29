@@ -189,6 +189,7 @@ function meteologic_theme() {
  */
 function meteologic_feeds($feed = NULL) {
   static $feeds;
+  $providers = meteologic_providers();
 
   if (!isset($feeds)) {
     $feeds = array();
@@ -196,6 +197,14 @@ function meteologic_feeds($feed = NULL) {
     foreach (module_implements('meteologic_feed_info') as $module) {
       foreach (module_invoke($module, 'meteologic_feed_info') as $name => $info) {
         $feeds[$name] = $info;
+        // Find providers of this feed.
+        $feeds[$name]['providers'] = array();
+
+        foreach ($providers as $provider_slug => $provider_info) {
+          if (array_key_exists($feed, $provider_info['feeds'])) {
+            $feeds[$name]['providers'][] = $provider_slug;
+          }
+        }
       }
     }
   }
@@ -363,4 +372,5 @@ function _meteologic_update_forecast($provider) {
 //  return FALSE;
   // @TODO do this.
   return TRUE;
+}
 }
