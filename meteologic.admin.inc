@@ -20,6 +20,13 @@ function meteologic_form_settings() {
     '#default_value' => variable_get('meteologic_feed_blocks', FALSE),
   );
 
+  $form['meteologic_dev'] = array(
+    '#type' => 'select',
+    '#title' => t('Development mode'),
+    '#description' => t('Development mode logs more watchdog entries such as debug statments whereas production will only log errors.'),
+    '#default_value' => variable_get('meteologic_dev', TRUE),
+  );
+
   return system_settings_form($form);
 }
 

@@ -136,7 +136,9 @@ function meteologic_menu() {
  */
 function meteologic_cron() {
   // Update forecasts.
-  watchdog('meteologic', 'Starting cron forecast update', array(), WATCHDOG_INFO);
+  if (variable_get('meteologic_dev', TRUE)) {
+    watchdog('meteologic', 'Starting cron forecast update', array(), WATCHDOG_INFO);
+  }
   $queue = DrupalQueue::get('meteologic_update');
 
   foreach (meteologic_providers() as $provider) {
@@ -478,6 +480,7 @@ function meteologic_get_data($feed, $provider = NULL) {
         $cache_key = "meteologic_{$feed}_{$provider}_result";
 
         // @TODO implement authentication?
+
         // Check Drupal's cache.
         if ($cache = cache_get($cache_key)) {
           if (!empty($cache->data)) {
@@ -492,10 +495,24 @@ function meteologic_get_data($feed, $provider = NULL) {
           $array = json_decode(json_encode((array) $xml), 1);
           cache_set($cache_key, $array, 'cache', CACHE_TEMPORARY);
           $results[$feed][$provider] = $array;
+
+          if (variable_get('meteologic_dev', TRUE)) {
+            watchdog('meteologic', 'Retrieved data for feed: %feed from provider: %provider', array(
+              '%feed' => $feed_info['name'],
+              '%provider' => $provider_info['name'],
+            ), WATCHDOG_INFO);
+          }
           return $array;
         }
         else if (!$has_provider) {
           // @TODO check for fallback option & feed.
+        }
+        else {
+          $feed_info = meteologic_feeds($feed);
+          watchdog('meteologic', 'Failed to get data for feed: %feed from provider: %provider', array(
+            '%feed' => $feed_info['name'],
+            '%provider' => $provider_info['name'],
+          ), WATCHDOG_ERROR);
         }
       }
     }
