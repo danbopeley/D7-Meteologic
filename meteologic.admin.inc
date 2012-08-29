@@ -147,7 +147,10 @@ function meteologic_form_feed_config($form, &$form_state, $feed) {
   }
 
   $form['actions'] = array('#type' => 'actions');
-  $form['actions']['submit'] = array( '#type' => 'submit', '#value' => t('Save Changes'));
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save Changes')
+  );
 
   return $form;
 }
@@ -158,7 +161,7 @@ function meteologic_form_feed_config($form, &$form_state, $feed) {
  * @see meteologic_form_feed_config()
  */
 function meteologic_form_feed_config_submit(&$form, &$form_state) {
-  $values =& $form_state['values'];
+  $values = & $form_state['values'];
   $feed = $form_state['meteologic_feed'];
 
   // Fallback variable.
@@ -194,25 +197,19 @@ function meteologic_summary_page() {
 
   $header = array(t('Feed'));
   $rows = array();
-//  $providers = array();
 
   foreach ($meteologic_providers as $provider) {
-//    $providers[] = $provider['name'];
     $header[] = $provider['name'];
   }
 
-//  $feeds = array();
   foreach (meteologic_feeds() as $feed_slug => $feed) {
-//    $feeds[] = $feed['name'];
     $temp = array($feed['name']);
 
     foreach ($meteologic_providers as $provider) {
       if (array_key_exists($feed_slug, $provider['feeds'])) {
-//        $temp[] = t('Yes');
         $temp[] = 'x';
       }
       else {
-//        $temp[] = t('No');
         $temp[] = '';
       }
     }
@@ -226,19 +223,6 @@ function meteologic_summary_page() {
     '#rows' => $rows,
   );
 
-//  $page['providers'] = array(
-//    '#theme' => 'item_list',
-//    '#items' => !empty($providers) ? $providers : array(t('-none-')),
-//    '#title' => t('Providers'),
-//    '#type' => 'ul',
-//  );
-//  $page['feeds'] = array(
-//    '#theme' => 'item_list',
-//    '#items' => !empty($feeds) ? $feeds : array(t('-none-')),
-//    '#title' => t('Feeds'),
-//    '#type' => 'ul',
-//  );
-
   return $page;
 }
 
@@ -249,25 +233,38 @@ function meteologic_summary_page() {
 function meteologic_update_form() {
   $form = array();
 
-  $options = array();
+  $feeds = array();
+  foreach (meteologic_feeds() as $feed_slug => $feed_info) {
+    $feeds[$feed_slug] = $feed_info['name'];
+  }
+
+  $form['feeds'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Feeds'),
+    '#description' => t('Select which feeds to update'),
+    '#options' => $feeds,
+    '#default_value' => array_keys($feeds),
+  );
+
+  $providers = array();
   foreach (meteologic_providers() as $provider_slug => $provider_info) {
-    $options[$provider_slug] = $provider_info['name'];
+    $providers[$provider_slug] = $provider_info['name'];
   }
 
   $form['providers'] = array(
     '#type' => 'checkboxes',
-    '#title' => t('Forecast Providers'),
-    '#description' => t('Select which forecast providers to manually update'),
-    '#options' => $options,
-    '#default_value' => array_keys($options),
+    '#title' => t('Providers'),
+    '#description' => t('Select which providers to update'),
+    '#options' => $providers,
+    '#default_value' => array_keys($providers),
   );
 
-  $form['submit'] = array(
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Update forecasts'),
+    '#value' => t('Update Feeds')
   );
 
-  $form['#submit'] = array('meteologic_update_form_submit');
   return $form;
 }
 
