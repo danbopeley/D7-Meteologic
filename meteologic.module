@@ -198,10 +198,10 @@ function meteologic_block_info() {
   $info = array();
   $feeds = meteologic_feeds();
 
-  foreach ($feeds as $slug => $feed) {
+  foreach ($feeds as $feed => $feed_info) {
     // Generate standard block for each feed.
-    $info[$slug] = array(
-      'info' => t('Meteologic: @feed', array('@feed' => $feed['name'])),
+    $info[$feed] = array(
+      'info' => t('Meteologic: @feed', array('@feed' => $feed_info['name'])),
       'cache' => DRUPAL_CACHE_GLOBAL,
     );
 
@@ -209,10 +209,10 @@ function meteologic_block_info() {
     if (variable_get('meteologic_feed_blocks', FALSE)) {
       $providers = meteologic_providers();
 
-      foreach ($feed['providers'] as $provider) {
-        $info["{$slug}_{$provider}"] = array(
+      foreach ($feed_info['providers'] as $provider) {
+        $info["{$feed}_{$provider}"] = array(
           'info' => t('Meteologic Extra: @feed by @provider', array(
-            '@feed' => $feed['name'],
+            '@feed' => $feed_info['name'],
             '@provider' => $providers[$provider]['name'],
           )),
           'cache' => DRUPAL_CACHE_GLOBAL,
