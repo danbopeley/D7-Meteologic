@@ -60,3 +60,15 @@ function meteologic_noaa_stations_radar() {
   module_load_include('inc', 'meteologic_noaa', 'meteologic_noaa_stations');
   return _meteologic_noaa_stations_radar();
 }
+
+/**
+ * Implements hook_theme().
+ */
+function meteologic_noaa_theme($existing, $type, $theme, $path) {
+  return array(
+    'meteologic_noaa_current_block' => array(
+      'variables' => array('data' => array()),
+      'file' => 'meteologic_noaa.theme.inc',
+    ),
+  );
+}

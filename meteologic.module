@@ -189,12 +189,13 @@ function meteologic_theme() {
   );
 
   // Provide default theme implementations for default feeds.
-  foreach (meteologic_meteologic_feed_info() as $slug => $info) {
-    $theme["meteologic_default_{$slug}"] = array(
-      'variables' => array('data' => array()),
-      'file' => 'meteologic.theme.inc',
-    );
-  }
+  // Actually, don't.
+//  foreach (meteologic_meteologic_feed_info() as $slug => $info) {
+//    $theme["meteologic_default_{$slug}"] = array(
+//      'variables' => array('data' => array()),
+//      'file' => 'meteologic.theme.inc',
+//    );
+//  }
 
   return $theme;
 }
