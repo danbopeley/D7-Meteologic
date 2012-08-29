@@ -22,7 +22,7 @@ function meteologic_form_settings() {
   $form['blocks']['meteologic_feed_blocks'] = array(
     '#type' => 'checkbox',
     '#title' => t('Generate a block for each feed and provider'),
-    '#description' => t('Regardless of which feeds and providers are enabled, generate a block for each valid combination.'),
+    '#description' => t('By default only a single block for each feed is generated, using the selected provider. Check ths option so that regardless of which feeds and providers are enabled, a block will generated each valid combination.'),
     '#default_value' => variable_get('meteologic_feed_blocks', FALSE),
   );
 
@@ -35,7 +35,7 @@ function meteologic_form_settings() {
   $form['pages']['meteologic_feed_pages'] = array(
     '#type' => 'checkbox',
     '#title' => t('Generate a page for each feed and provider'),
-    '#description' => t('Regardless of which feeds and providers are enabled, generate a page for each valid combination.'),
+    '#description' => t('By default only a single page for each feed is generated, using the selected provider. Check ths option so that regardless of which feeds and providers are enabled, a page will generated each valid combination.'),
     '#default_value' => variable_get('meteologic_feed_pages', FALSE),
   );
 
