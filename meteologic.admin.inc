@@ -21,7 +21,7 @@ function meteologic_form_settings() {
   );
 
   $form['meteologic_dev'] = array(
-    '#type' => 'select',
+    '#type' => 'checkbox',
     '#title' => t('Development mode'),
     '#description' => t('Development mode logs more watchdog entries such as debug statments whereas production will only log errors.'),
     '#default_value' => variable_get('meteologic_dev', TRUE),
