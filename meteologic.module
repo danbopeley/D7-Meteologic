@@ -221,6 +221,42 @@ function meteologic_block_info() {
 
   return $info;
 }
+
+/**
+ * Implements hook_block_view().
+ */
+function meteologic_block_view($delta = '') {
+  $block = array();
+  $feeds = meteologic_feeds();
+
+  // Are we displaying the standard block?
+  if (array_key_exists($delta, $feeds)) {
+    $provider = meteologic_provider_default($delta);
+    $provider_info = meteologic_providers($provider);
+
+    if (isset($provider_info['feeds'][$delta]['theme']['block'])) {
+      $theme_callback = $provider_info['feeds'][$delta]['theme']['block'];
+    }
+    else {
+      $theme_callback = "meteologic_default_{$delta}";
+    }
+
+    // @TODO move this logic into a generic preprocess?
+    $data = meteologic_get_feed($delta, $provider);
+    $block['subject'] = $feeds[$delta]['name']; // Don't bother translating.
+    $block['content'] = array(
+      '#theme' => $theme_callback,
+      '#data' => $data,
+    );
+  }
+  else {
+    // @TODO handle custom blocks.
+  }
+
+  return $block;
+}
+
+/**
  * Returns information on either a specified feed or all of them.
  *
  * @param string
