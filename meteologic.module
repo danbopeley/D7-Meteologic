@@ -513,10 +513,12 @@ function _meteologic_update_feed($feed, $provider = NULL) {
  * @param string
  *   Optionally specify a provider to return the feed data for and if left out,
  *    return results for the default provider.
+ * @param boolean
+ *   Optionally, bypass caches and return a fresh result.
  * @return array
  *   An array of feed data.
  */
-function meteologic_get_data($feed, $provider = NULL) {
+function meteologic_get_data($feed, $provider = NULL, $reset = FALSE) {
   // Good ol' static cache.
   static $results;
 
@@ -530,7 +532,7 @@ function meteologic_get_data($feed, $provider = NULL) {
   }
 
   // Check static cache.
-  if (isset($results[$feed][$provider])) {
+  if (!$reset && isset($results[$feed][$provider])) {
     return $results[$feed][$provider];
   }
 
@@ -545,7 +547,7 @@ function meteologic_get_data($feed, $provider = NULL) {
 
         // @TODO implement authentication?
         // Check Drupal's cache.
-        if ($cache = cache_get($cache_key)) {
+        if (!$reset && $cache = cache_get($cache_key)) {
           if (!empty($cache->data)) {
             $results[$feed][$provider] = $cache->data;
             return $cache->data;
