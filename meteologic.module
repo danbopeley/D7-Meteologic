@@ -547,7 +547,9 @@ function meteologic_get_data($feed, $provider = NULL, $reset = FALSE) {
         $path = str_replace('@station', $station, $provider_info['feeds'][$feed]['path']);
         $cache_key = "meteologic_{$feed}_{$provider}_result";
 
-        // @TODO implement authentication?
+        // @TODO implement authentication for any feeds that require it.
+        // Will do when we run into this scenario.
+
         // Check Drupal's cache.
         if (!$reset && $cache = cache_get($cache_key)) {
           if (!empty($cache->data)) {
@@ -561,7 +563,9 @@ function meteologic_get_data($feed, $provider = NULL, $reset = FALSE) {
           // Convert XML to array.
           // @see http://gaarf.info/2009/08/13/xml-string-to-php-array/
           $array = json_decode(json_encode((array) $xml), 1);
-          cache_set($cache_key, $array, 'cache', CACHE_TEMPORARY);
+          // We use the permanent cache because the data gets updated during
+          // cron runs anyway.
+          cache_set($cache_key, $array, 'cache', CACHE_PERMANENT);
           $results[$feed][$provider] = $array;
 
           if (variable_get('meteologic_dev', TRUE)) {
