@@ -249,24 +249,28 @@ function meteologic_block_info() {
   $feeds = meteologic_feeds();
 
   foreach ($feeds as $feed => $feed_info) {
-    // Generate standard block for each feed.
-    $info[$feed] = array(
-      'info' => t('Meteologic: @feed', array('@feed' => $feed_info['name'])),
-      'cache' => DRUPAL_CACHE_GLOBAL,
-    );
+    // Generate standard block for each feed, but only if it has at least
+    // one provider.
 
-    // Generate a specific block for each feed/provider combination.
-    if (variable_get('meteologic_feed_blocks', FALSE)) {
-      $providers = meteologic_providers();
+    if (!empty($feed_info['providers'])) {
+      $info[$feed] = array(
+        'info' => t('Meteologic: @feed', array('@feed' => $feed_info['name'])),
+        'cache' => DRUPAL_CACHE_GLOBAL,
+      );
 
-      foreach ($feed_info['providers'] as $provider) {
-        $info["{$feed}___{$provider}"] = array(
-          'info' => t('Meteologic Extra: @feed by @provider', array(
-            '@feed' => $feed_info['name'],
-            '@provider' => $providers[$provider]['name'],
-          )),
-          'cache' => DRUPAL_CACHE_GLOBAL,
-        );
+      // Generate a specific block for each feed/provider combination.
+      if (variable_get('meteologic_feed_blocks', FALSE)) {
+        $providers = meteologic_providers();
+
+        foreach ($feed_info['providers'] as $provider) {
+          $info["{$feed}___{$provider}"] = array(
+            'info' => t('Meteologic Extra: @feed by @provider', array(
+              '@feed' => $feed_info['name'],
+              '@provider' => $providers[$provider]['name'],
+            )),
+            'cache' => DRUPAL_CACHE_GLOBAL,
+          );
+        }
       }
     }
   }
