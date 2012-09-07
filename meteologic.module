@@ -504,9 +504,7 @@ function meteologic_update_feeds_batch_finished($success, $results, $operations,
  *   Whether the update was successful or not.
  */
 function _meteologic_update_feed($feed, $provider = NULL) {
-  // @TODO deal with default provider or updating all feeds.
-  // @TODO do this.
-  return TRUE;
+  return is_array(meteologic_get_data($feed, $provider, TRUE));
 }
 
 /**
@@ -519,8 +517,8 @@ function _meteologic_update_feed($feed, $provider = NULL) {
  *    return results for the default provider.
  * @param boolean
  *   Optionally, bypass caches and return a fresh result.
- * @return array
- *   An array of feed data.
+ * @return array|FALSE
+ *   An array of feed data, or FALSE something went wrong.
  */
 function meteologic_get_data($feed, $provider = NULL, $reset = FALSE) {
   // Good ol' static cache.
