@@ -83,14 +83,25 @@ function meteologic_form_settings() {
 
 /**
  * Submit callback.
- * We need to flush the menu cache if the "pages" option changes.
+ * We need to rebuild the menu if the "pages" option changes.
+ *
+ * @see meteologic_form_settings()
  */
 function meteologic_form_settings_submit(&$form, &$form_state) {
   $page_enable = variable_get('meteologic_page_enable', FALSE);
 
-  // Value changed, must flush caches.
+  // Value changed, must reubuild menu.
   if ($page_enable != $form_state['values']['meteologic_page_enable']) {
     variable_set('menu_rebuild_needed', TRUE);
+  }
+  // Value didn't change but is on; check whether the generate page for each
+  // feed/provider combo changed as it will also warrant a menu rebuild.
+  else if ($form_state['values']['meteologic_page_enable']) {
+    $page_combo = variable_get('meteologic_feed_pages', FALSE);
+
+    if ($page_combo != $form_state['values']['meteologic_feed_pages']) {
+      variable_set('menu_rebuild_needed', TRUE);
+    }
   }
 }
 
