@@ -242,15 +242,17 @@ function meteologic_form_feed_config_submit(&$form, &$form_state) {
     variable_set($provider, $status);
   }
 
-  // Provider order.
-  $order = array();
+  if (isset($values['providers'])) {
+    // Provider order.
+    $order = array();
 
-  foreach ($values['providers'] as $slug => $info) {
-    $order[$slug] = $info['weight'];
+    foreach ($values['providers'] as $slug => $info) {
+      $order[$slug] = $info['weight'];
+    }
+
+    asort($order);
+    variable_set("meteologic_weight_{$feed}", $order);
   }
-
-  asort($order);
-  variable_set("meteologic_weight_{$feed}", $order);
 }
 
 /**
