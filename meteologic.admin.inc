@@ -76,7 +76,22 @@ function meteologic_form_settings() {
     '#default_value' => variable_get('meteologic_dev', TRUE),
   );
 
+  $form['#submit'][] = 'meteologic_form_settings_submit';
+
   return system_settings_form($form);
+}
+
+/**
+ * Submit callback.
+ * We need to flush the menu cache if the "pages" option changes.
+ */
+function meteologic_form_settings_submit(&$form, &$form_state) {
+  $page_enable = variable_get('meteologic_page_enable', FALSE);
+
+  // Value changed, must flush caches.
+  if ($page_enable != $form_state['values']['meteologic_page_enable']) {
+    variable_set('menu_rebuild_needed', TRUE);
+  }
 }
 
 /**
