@@ -192,6 +192,14 @@ function meteologic_form_feed_config($form, &$form_state, $feed) {
 
     $weights = variable_get("meteologic_weight_{$feed}", array());
 
+    if (empty($weights)) {
+      // This option hasn't been set yet, so manually populate the
+      // providers that implement this feed.
+      foreach ($feed_info['providers'] as $provider) {
+        $weights[$provider] = 0;
+      }
+    }
+
     foreach ($weights as $slug => $weight) {
       $form['order']['providers'][$slug] = array(
         'name' => array(
