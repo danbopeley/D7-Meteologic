@@ -120,7 +120,7 @@ function meteologic_form_settings_cron() {
   $form['cron'] = array(
     '#type' => 'fieldset',
     '#title' => t('Cron'),
-    '#description' => t('Here you can manually configure which feeds from which providers are updated.'),
+    '#description' => t("Here you can manually configure which feeds from which providers are updated, if any, during cron. Please note that regardless of what is selected here, if a provider isn't enabled for that feed it won't get updated.."),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
     '#tree' => TRUE,
