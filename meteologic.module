@@ -354,7 +354,10 @@ function meteologic_feeds($feed = NULL) {
 
         foreach ($providers as $provider_slug => $provider_info) {
           if (array_key_exists($name, $provider_info['feeds'])) {
-            $feeds[$name]['providers'][] = $provider_slug;
+            $feeds[$name]['providers'][$provider_slug] = array(
+              'name' => $provider_info['name'],
+              'enabled' => variable_get("meteologic_{$name}_{$provider_slug}", FALSE),
+            );
           }
         }
       }
