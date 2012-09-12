@@ -261,14 +261,27 @@ function meteologic_theme() {
     ),
   );
 
-  // Provide default theme implementations for default feeds.
-  // Actually, don't.
-//  foreach (meteologic_meteologic_feed_info() as $slug => $info) {
-//    $theme["meteologic_default_{$slug}"] = array(
-//      'variables' => array('data' => array()),
-//      'file' => 'meteologic.theme.inc',
-//    );
-//  }
+  // Declare theme functions on the behalf of providers.
+  foreach (meteologic_providers() as $provider) {
+    $callbacks = array();
+
+    foreach ($provider['feeds'] as $feed) {
+      foreach ($feed['theme'] as $callback) {
+        $callbacks[] = $callback;
+      }
+    }
+
+    $callbacks = array_unique($callbacks);
+
+    foreach ($callbacks as $callback) {
+      $theme[$callback] = array(
+        'variables' => array('data' => array()),
+        // Convention over configuration, baby.
+        'file' => "{$provider['module']}.theme.inc",
+        'path' => drupal_get_path('module', $provider['module']),
+      );
+    }
+  }
 
   return $theme;
 }
