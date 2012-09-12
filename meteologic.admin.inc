@@ -42,7 +42,7 @@ function meteologic_form_settings() {
   $form['pages']['metelogic_page_path'] = array(
     '#type' => 'textfield',
     '#title' => t('Base path for pages'),
-    '#description' => t('Define a base path for Meteologic feed pages. The default is "meteologic", so each feed will have a URL like this: meteologic/current, meteologic/radar and so on.'),
+    '#description' => t('Define a base path for Meteologic feed pages. The default is "meteologic", so each feed will have a URL like this: meteologic/current, meteologic/radar and so on. Please not that this path will only be used as a base and will have no page of its own.'),
     '#default_value' => variable_get('metelogic_page_path', 'meteologic'),
     '#states' => array(
       'visible' => array(
