@@ -345,14 +345,16 @@ function meteologic_pre_render($elements) {
  *
  * @param string
  *   A feed name.
+ * @param boolean
+ *   TRUE to bypass caches and force rebuilding feed data.
  * @return array
  *   An array of feed information, keyed by name.
  */
-function meteologic_feeds($feed = NULL) {
+function meteologic_feeds($feed = NULL, $reset = FALSE) {
   static $feeds;
   $providers = meteologic_providers();
 
-  if (!isset($feeds)) {
+  if ($reset || !isset($feeds)) {
     $feeds = array();
 
     foreach (module_implements('meteologic_feed_info') as $module) {
