@@ -6,7 +6,7 @@
 
 /**
  * Form callback.
- * Displays main meteologic settings form.
+ * Displays meteologic global settings form.
  *
  * @see meteologic_menu()
  */
@@ -16,7 +16,8 @@ function meteologic_form_settings() {
   $form['blocks'] = array(
     '#type' => 'fieldset',
     '#title' => t('Blocks'),
-    '#collapsible' => FALSE,
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
   );
 
   $form['blocks']['meteologic_feed_blocks'] = array(
@@ -29,7 +30,8 @@ function meteologic_form_settings() {
   $form['pages'] = array(
     '#type' => 'fieldset',
     '#title' => t('Pages'),
-    '#collapsible' => FALSE,
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
   );
 
   $form['pages']['meteologic_page_enable'] = array(
@@ -66,7 +68,8 @@ function meteologic_form_settings() {
   $form['misc'] = array(
     '#type' => 'fieldset',
     '#title' => t('Misc'),
-    '#collapsible' => FALSE,
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
   );
 
   $form['misc']['meteologic_dev'] = array(
