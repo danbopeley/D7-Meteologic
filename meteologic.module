@@ -201,8 +201,8 @@ function meteologic_cron() {
   }
   $queue = DrupalQueue::get('meteologic_update');
 
-  foreach (meteologic_providers() as $provider) {
-    $queue->createItem($provider);
+  foreach (meteologic_feeds() as $feed) {
+    $queue->createItem(array('feed' => $feed, 'cron' => TRUE));
   }
 }
 
@@ -475,7 +475,7 @@ function meteologic_update_feeds_batch($providers, &$context) {
   // Process a single provider.
   $current = $providers[$context['sandbox']['progress']];
   // @TODO store errors somewhere to display after batch finishes?
-  _meteologic_update_feed($current);
+  _meteologic_update_feed(array('feed' => $current));
   ++$context['sandbox']['progress'];
 
   // Check if the batch is finished
@@ -503,20 +503,29 @@ function meteologic_update_feeds_batch_finished($success, $results, $operations,
 }
 
 /**
- * Updates forecast information for a specific feed.
+ * Updates information for a specific feed.
  * This function shouldn't be called directly unless you know what you are
  * doing! If all you want to do is update the forecast information manually
  * please consider visiting the settings page at "admin/config/services/update".
  *
- * @param string
- *   The feed's machine name.
- * @param string
- *   The provider's machine name.
+ * @param array
+ *   An array of feed information.
  * @return boolean
  *   Whether the update was successful or not.
  */
-function _meteologic_update_feed($feed, $provider = NULL) {
-  return is_array(meteologic_get_data($feed, $provider, TRUE));
+function _meteologic_update_feed(array $data) {
+  extract($data);
+
+  foreach ($feed['providers'] as $provider => $provider_info) {
+    if ($provider_info['enabled']) {
+      if (isset($cron) && $cron === TRUE) {
+        if (!variable_get("meteologic_cron_{$feed['_slug']}_{$provider}")) {
+          continue;
+        }
+      }
+      meteologic_get_data($feed['_slug'], $provider, TRUE);
+    }
+  }
 }
 
 /**
@@ -540,7 +549,9 @@ function meteologic_get_data($feed, $provider = NULL, $reset = FALSE) {
   $has_provider = isset($provider);
 
   if (!$has_provider) {
-    if (!$provider = meteologic_provider_default($feed)) {
+    $provider = meteologic_provider_default($feed);
+
+    if (!$provider) {
       return FALSE;
     }
   }
@@ -552,6 +563,15 @@ function meteologic_get_data($feed, $provider = NULL, $reset = FALSE) {
 
   // Load provider info.
   if ($provider_info = meteologic_providers($provider)) {
+    $feed_info = meteologic_feeds($feed);
+
+    if (variable_get('meteologic_dev', TRUE)) {
+      watchdog('meteologic', 'Looking up data for feed: %feed from provider: %provider', array(
+        '%feed' => $feed_info['name'],
+        '%provider' => $provider_info['name'],
+        ), WATCHDOG_INFO);
+    }
+
     if (isset($provider_info['feeds'][$feed]['path'])) {
       // Replace tokens.
 //      if ($station = variable_get("meteologic_{$feed}_{$provider}_station", NULL)) {
@@ -561,7 +581,6 @@ function meteologic_get_data($feed, $provider = NULL, $reset = FALSE) {
 
         // @TODO implement authentication for any feeds that require it.
         // Will do when we run into this scenario.
-
         // Check Drupal's cache.
         if (!$reset && $cache = cache_get($cache_key)) {
           if (!empty($cache->data)) {
@@ -581,7 +600,6 @@ function meteologic_get_data($feed, $provider = NULL, $reset = FALSE) {
           $results[$feed][$provider] = $array;
 
           if (variable_get('meteologic_dev', TRUE)) {
-            $feed_info = meteologic_feeds($feed);
             watchdog('meteologic', 'Retrieved data for feed: %feed from provider: %provider', array(
               '%feed' => $feed_info['name'],
               '%provider' => $provider_info['name'],
@@ -593,7 +611,6 @@ function meteologic_get_data($feed, $provider = NULL, $reset = FALSE) {
           // @TODO check for fallback option & feed.
         }
         else {
-          $feed_info = meteologic_feeds($feed);
           watchdog('meteologic', 'Failed to get data for feed: %feed from provider: %provider', array(
             '%feed' => $feed_info['name'],
             '%provider' => $provider_info['name'],
