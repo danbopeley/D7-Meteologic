@@ -196,17 +196,16 @@ function _meteologic_render_page($feed, $provider = NULL) {
       $provider = meteologic_provider_default($feed['_slug']);
     }
 
-    include_once drupal_get_path('module', 'devel') . '/krumo/class.krumo.php';
-    krumo($feed['providers'][$provider]);die;
+    $provider = $feed['providers'][$provider];
 
-    if (isset($feed['providers'][$provider]['feeds'][$feed['_slug']]['theme']['page'])) {
-      $theme = $feed['providers'][$provider]['feeds'][$feed['_slug']]['theme']['page'];
+    if (isset($provider['theme']['page'])) {
+      $theme = $provider['theme']['page'];
 
       return array(
         '#theme' => $theme,
         '#pre_render' => array('meteologic_pre_render'),
-        '#meteologic_feed' => $feed,
-        '#meteologic_provider' => $provider,
+        '#meteologic_feed' => $feed['_slug'],
+        '#meteologic_provider' => $provider['_slug'],
       );
     }
   }
