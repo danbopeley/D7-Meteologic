@@ -337,31 +337,37 @@ function meteologic_summary_page() {
  */
 function meteologic_update_form() {
   $form = array();
+  $providers = meteologic_providers();
 
-  $feeds = array();
+  // Only display feeds with at least one provider.
+  $update_feeds = array();
+  $update_providers = array();
+
   foreach (meteologic_feeds() as $feed_slug => $feed_info) {
-    $feeds[$feed_slug] = $feed_info['name'];
+    if (!empty($feed_info['providers'])) {
+      $update_feeds[$feed_slug] = $feed_info['name'];
+      foreach ($feed_info['providers'] as $provider) {
+        if (isset($providers[$provider])) {
+          $update_providers[$provider] = $providers[$provider]['name'];
+        }
+      }
+    }
   }
 
   $form['feeds'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Feeds'),
     '#description' => t('Select which feeds to update'),
-    '#options' => $feeds,
-    '#default_value' => array_keys($feeds),
+    '#options' => $update_feeds,
+    '#default_value' => array_keys($update_feeds),
   );
-
-  $providers = array();
-  foreach (meteologic_providers() as $provider_slug => $provider_info) {
-    $providers[$provider_slug] = $provider_info['name'];
-  }
 
   $form['providers'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Providers'),
     '#description' => t('Select which providers to update'),
-    '#options' => $providers,
-    '#default_value' => array_keys($providers),
+    '#options' => $update_providers,
+    '#default_value' => array_keys($update_providers),
   );
 
   $form['actions'] = array('#type' => 'actions');
@@ -380,13 +386,11 @@ function meteologic_update_form() {
  * @see meteologic_update_form()
  */
 function meteologic_update_form_submit($form, &$form_state) {
-  $providers = array();
+  $feeds = $form_state['values']['feeds'];
+  $providers = $form_state['values']['providers'];
 
-  foreach ($form_state['values']['providers'] as $provider => $status) {
-    if ($status) {
-      $providers[] = $provider;
-    }
-  }
+  include_once drupal_get_path('module', 'devel') . '/krumo/class.krumo.php';
+  krumo($feeds, $providers);die;
 
-  meteologic_update_feeds($providers);
+  meteologic_update_feeds($feeds, $providers);
 }
