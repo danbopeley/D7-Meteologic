@@ -616,7 +616,8 @@ function meteologic_get_data($feed, $provider = NULL, $reset = FALSE) {
         }
       }
 
-      // Let' try to keep it simple for now.
+      // Let' try to keep it simple for now although we might need to use CURL
+      // eventually.
       if ($xml = simplexml_load_file($path)) {
         // Convert XML to array.
         // @see http://gaarf.info/2009/08/13/xml-string-to-php-array/
