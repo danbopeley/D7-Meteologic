@@ -386,9 +386,19 @@ function meteologic_feeds($feed = NULL, $reset = FALSE) {
         // Find providers of this feed.
         $feeds[$name]['providers'] = array();
 
+        // Add provider information to each feed.
         foreach ($providers as $provider_slug => $provider_info) {
           if (array_key_exists($name, $provider_info['feeds'])) {
+            // We actually return a custom version of the provider's info,
+            // suited to this particular feed.
             $provider_info['enabled'] = variable_get("meteologic_{$name}_{$provider_slug}", FALSE);
+            $provider_feeds = $provider_info['feeds'];
+            unset($provider_info['feeds']);
+
+            if (isset($provider_feeds[$name])) {
+              $provider_info += $provider_feeds[$name];
+            }
+
             $feeds[$name]['providers'][$provider_slug] = $provider_info;
           }
         }
