@@ -120,9 +120,8 @@ function meteologic_form_settings_cron() {
   $form['cron'] = array(
     '#type' => 'fieldset',
     '#title' => t('Cron'),
-    '#description' => t("Here you can manually configure which feeds from which providers are updated, if any, during cron. Please note that regardless of what is selected here, if a provider isn't enabled for that feed it won't get updated.."),
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
+    '#description' => t("Here you can manually configure which feeds from which providers are updated, if any, during cron."),
+    '#collapsible' => FALSE,
     '#tree' => TRUE,
   );
 
@@ -402,38 +401,37 @@ function meteologic_summary_page() {
  */
 function meteologic_update_form() {
   $form = array();
-  $providers = meteologic_providers();
 
-  // Only display feeds with at least one provider.
-  $update_feeds = array();
-  $update_providers = array();
+  $form['update'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Manula Update'),
+    '#description' => t("Here you can manually configure which feeds from which providers to update."),
+    '#collapsible' => FALSE,
+    '#tree' => TRUE,
+  );
 
-  foreach (meteologic_feeds() as $feed_slug => $feed_info) {
+  foreach (meteologic_feeds() as $feed => $feed_info) {
     if (!empty($feed_info['providers'])) {
-      $update_feeds[$feed_slug] = $feed_info['name'];
-      foreach ($feed_info['providers'] as $provider) {
-        if (isset($providers[$provider])) {
-          $update_providers[$provider] = $providers[$provider]['name'];
+
+      $form['update'][$feed] = array(
+        '#type' => 'fieldset',
+        '#collapsible' => TRUE,
+//        '#collapsed' => TRUE,
+        '#title' => $feed_info['name'],
+        '#tree' => TRUE,
+      );
+
+      foreach ($feed_info['providers'] as $provider => $provider_info) {
+        if ($provider_info['enabled']) {
+          $form['update'][$feed][$provider] = array(
+            '#type' => 'checkbox',
+            '#title' => $provider_info['name'],
+            '#default_value' => TRUE,
+          );
         }
       }
     }
   }
-
-  $form['feeds'] = array(
-    '#type' => 'checkboxes',
-    '#title' => t('Feeds'),
-    '#description' => t('Select which feeds to update'),
-    '#options' => $update_feeds,
-    '#default_value' => array_keys($update_feeds),
-  );
-
-  $form['providers'] = array(
-    '#type' => 'checkboxes',
-    '#title' => t('Providers'),
-    '#description' => t('Select which providers to update'),
-    '#options' => $update_providers,
-    '#default_value' => array_keys($update_providers),
-  );
 
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
@@ -451,11 +449,34 @@ function meteologic_update_form() {
  * @see meteologic_update_form()
  */
 function meteologic_update_form_submit($form, &$form_state) {
-  $feeds = $form_state['values']['feeds'];
-  $providers = $form_state['values']['providers'];
+  $feeds = array();
 
-  include_once drupal_get_path('module', 'devel') . '/krumo/class.krumo.php';
-//  krumo($feeds, $providers);die;
+  foreach ($form_state['values']['update'] as $feed => $info) {
+    $feed = meteologic_feeds($feed);
+    foreach ($info as $provider => $enabled) {
+      if (!$enabled) {
+        $feed['providers'][$provider]['enabled'] = FALSE;
+      }
+    }
 
-  meteologic_update_feeds($feeds, $providers);
+    $feeds[] = $feed;
+  }
+
+  // Use Batch API to update each one.
+  batch_set(array(
+    'title' => t('Updating Meteologic feeds...'),
+    'operations' => array(
+      array('meteologic_update_feeds_batch', array($feeds))
+    ),
+    'progress_message' => t('Updated @current of @total.'),
+    'error_message' => t('An error has occurred updating feed information. Please check the site logs for more information.'),
+    'finished' => 'meteologic_update_feeds_batch_finished',
+  ));
+
+  if (variable_get('meteologic_dev', TRUE)) {
+    watchdog('meteologic', 'Starting batch forecast update', array(), WATCHDOG_INFO);
+  }
+
+  // Start batch and redirect to update form when we're done.
+  batch_process('admin/config/services/meteologic/update');
 }
