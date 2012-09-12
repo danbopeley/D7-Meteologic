@@ -165,14 +165,20 @@ function meteologic_menu() {
           'access arguments' => $access_arguments,
         );
 
+        $items[$metelogic_page_path . "/{$feed}/default"] = array(
+          'title' => $feed_info['name'],
+          'type' => MENU_DEFAULT_LOCAL_TASK,
+        );
+
         // Generate a page for each provider implementing the feed.
         if (variable_get('meteologic_feed_pages', FALSE)) {
           foreach ($feed_info['providers'] as $provider) {
             $items[$metelogic_page_path . "/{$feed}/{$provider['_slug']}"] = array(
-              'title' => "{$provider['name']} {$feed_info['name']}",
+              'title' => "{$provider['name']}",
               'page callback' => '_meteologic_render_page',
               'page arguments' => array($feed, $provider['_slug']),
               'access arguments' => $access_arguments,
+              'type' => MENU_LOCAL_TASK,
             );
           }
         }
@@ -191,6 +197,8 @@ function meteologic_menu() {
  * @see meteologic_menu()
  */
 function _meteologic_render_page($feed, $provider = NULL) {
+  $provider_orig = $provider;
+
   if ($feed = meteologic_feeds($feed)) {
     if (!isset($provider)) {
       $provider = meteologic_provider_default($feed['_slug']);
@@ -200,6 +208,20 @@ function _meteologic_render_page($feed, $provider = NULL) {
 
     if (isset($provider['theme']['page'])) {
       $theme = $provider['theme']['page'];
+
+      // Set breadcrumb and page title.
+      $metelogic_page_path = variable_get('metelogic_page_path', 'meteologic');
+      $breadcrumb = drupal_get_breadcrumb();
+
+      if (!isset($provider_orig)) {
+        $breadcrumb[] = l(t($feed['name']), "{$metelogic_page_path}/{$feed['_slug']}");
+      }
+      else {
+        $breadcrumb[] = l(t($provider['name']), "{$metelogic_page_path}/{$feed['_slug']}/{$provider['_slug']}");
+        drupal_set_title(t("@feed - @provider", array('@feed' => $feed['name'], '@provider' => $provider['name'])));
+      }
+
+      drupal_set_breadcrumb($breadcrumb);
 
       return array(
         '#theme' => $theme,
