@@ -115,9 +115,20 @@ function meteologic_menu() {
     );
   }
 
+  $items['admin/config/services/meteologic/cron'] = array(
+    'title' => 'Cron',
+    'description' => 'Configure automatic feed updating on cron.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('meteologic_form_settings_cron'),
+    'access arguments' => array('administer meteologic'),
+    'file' => 'meteologic.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => -1,
+  );
+
   $items['admin/config/services/meteologic/update'] = array(
-    'title' => 'Update',
-    'description' => 'Update weather feeds.',
+    'title' => 'Manual Update',
+    'description' => 'Manually update weather feeds.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('meteologic_update_form'),
     'access arguments' => array('administer meteologic'),

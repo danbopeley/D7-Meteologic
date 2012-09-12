@@ -109,6 +109,68 @@ function meteologic_form_settings_submit(&$form, &$form_state) {
 }
 
 /**
+ * Form callback.
+ * Displays meteologic cron settings form.
+ *
+ * @see meteologic_menu()
+ */
+function meteologic_form_settings_cron() {
+  $form = array();
+
+  $form['cron'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Cron'),
+    '#description' => t('Here you can manually configure which feeds from which providers are updated.'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#tree' => TRUE,
+  );
+
+  foreach (meteologic_feeds() as $feed => $feed_info) {
+    if (!empty($feed_info['providers'])) {
+
+      $form['cron'][$feed] = array(
+        '#type' => 'fieldset',
+        '#collapsible' => TRUE,
+//        '#collapsed' => TRUE,
+        '#title' => $feed_info['name'],
+        '#tree' => TRUE,
+      );
+
+      foreach ($feed_info['providers'] as $provider => $provider_info) {
+        if ($provider_info['enabled']) {
+          $varname = "meteologic_cron_{$feed}_{$provider}";
+
+          $form['cron'][$feed][$provider] = array(
+            '#type' => 'checkbox',
+            '#title' => $provider_info['name'],
+            '#default_value' => variable_get($varname, TRUE),
+          );
+        }
+      }
+    }
+  }
+
+  $form['#submit'][] = 'meteologic_form_settings_cron_submit';
+
+  return system_settings_form($form);
+}
+
+/**
+ * Submit callback.
+ * I'm not sure why we need this but the form wasn't saving variables any other
+ * way. @TODO come back to this later.
+ */
+function meteologic_form_settings_cron_submit(&$form, &$form_state) {
+  foreach ($form_state['values']['cron'] as $feed => $feed_info) {
+    foreach ($feed_info as $provider => $status) {
+      $varname = "meteologic_cron_{$feed}_{$provider}";
+      variable_set($varname, $status);
+    }
+  }
+}
+
+/**
  * Page callback.
  * Displays meteologic provider settings home page.
  *
@@ -393,7 +455,7 @@ function meteologic_update_form_submit($form, &$form_state) {
   $providers = $form_state['values']['providers'];
 
   include_once drupal_get_path('module', 'devel') . '/krumo/class.krumo.php';
-  krumo($feeds, $providers);die;
+//  krumo($feeds, $providers);die;
 
   meteologic_update_feeds($feeds, $providers);
 }
