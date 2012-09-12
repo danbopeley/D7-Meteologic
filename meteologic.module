@@ -405,7 +405,7 @@ function meteologic_feeds($feed = NULL, $reset = FALSE) {
     }
   }
 
-  return isset($feed) ? $feeds[$feed] : $feeds;
+  return (isset($feed) && array_key_exists($feed, $feeds)) ? $feeds[$feed] : $feeds;
 }
 
 /**
@@ -468,7 +468,8 @@ function meteologic_providers($provider = NULL, $reset = FALSE) {
     }
   }
 
-  return isset($provider) ? $providers[$provider] : $providers;
+  return isset($provider) && array_key_exists($provider, $providers) ? $providers[$provider]
+      : $providers;
 }
 
 /**
