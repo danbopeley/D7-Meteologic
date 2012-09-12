@@ -16,8 +16,8 @@ function meteologic_mesowest_meteologic_provider_info() {
         'current' => array(
           'path' => 'http://mesowest.utah.edu/cgi-bin/droman/xml_get_monitor_data_dev.cgi?stn=@station&searchtype=mostrecent&currentorpast=current',
           'theme' => array(
-            'block' => 'meteologic_mesowest_current_block',
-            'page' => 'meteologic_mesowest_current_page',
+            'block' => 'meteologic_mesowest_current',
+            'page' => 'meteologic_mesowest_current',
           ),
         ),
       ),
