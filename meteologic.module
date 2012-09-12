@@ -358,6 +358,7 @@ function meteologic_feeds($feed = NULL) {
     foreach (module_implements('meteologic_feed_info') as $module) {
       foreach (module_invoke($module, 'meteologic_feed_info') as $name => $info) {
         $feeds[$name] = $info;
+        $feeds[$name]['_slug'] = $name;
         // Find providers of this feed.
         $feeds[$name]['providers'] = array();
 
