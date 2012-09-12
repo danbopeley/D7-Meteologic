@@ -431,6 +431,7 @@ function meteologic_providers($provider = NULL) {
     foreach (module_implements('meteologic_provider_info') as $module) {
       foreach (module_invoke($module, 'meteologic_provider_info') as $name => $info) {
         $providers[$name] = $info;
+        $providers[$name]['_slug'] = $name;
         $providers[$name]['module'] = $module;
       }
     }
