@@ -196,7 +196,7 @@ function meteologic_form_feed_config($form, &$form_state, $feed) {
     $form['enabled'][$varname] = array(
       '#type' => 'checkbox',
       '#title' => $meteologic_providers[$slug]['name'],
-      '#default_value' => variable_get($varname, TRUE),
+      '#default_value' => variable_get($varname, FALSE),
     );
   }
 
