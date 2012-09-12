@@ -271,13 +271,11 @@ function meteologic_block_info() {
 
       // Generate a specific block for each feed/provider combination.
       if (variable_get('meteologic_feed_blocks', FALSE)) {
-        $providers = meteologic_providers();
-
-        foreach ($feed_info['providers'] as $provider) {
-          $info["{$feed}___{$provider}"] = array(
+        foreach ($feed_info['providers'] as $provider_name => $provider_info) {
+          $info["{$feed}___{$provider_name}"] = array(
             'info' => t('Meteologic Extra: @feed by @provider', array(
               '@feed' => $feed_info['name'],
-              '@provider' => $providers[$provider]['name'],
+              '@provider' => $provider_info['name'],
             )),
             'cache' => DRUPAL_CACHE_GLOBAL,
           );
