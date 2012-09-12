@@ -10,10 +10,7 @@
  */
 
 /**
- * Theme callback.
- * Provides a theme for Current Conditions.
- *
- * @see meteologic_noaa_theme()
+ * Provides a theme for them NOAA Current Conditions feed.
  */
 function theme_meteologic_noaa_current($variables) {
   $data = $variables['data'];
