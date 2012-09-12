@@ -147,10 +147,10 @@ function meteologic_menu() {
     'weight' => 50,
   );
 
+  // Generate feed pages.
   $metelogic_page_path = variable_get('metelogic_page_path', 'meteologic');
 
   if (variable_get('meteologic_page_enable', FALSE)) {
-    // Generate custom pages.
     foreach (meteologic_feeds() as $feed => $feed_info) {
       if (variable_get('meteologic_feed_pages', FALSE)) {
         $providers = meteologic_providers();
@@ -164,7 +164,8 @@ function meteologic_menu() {
               $provider,
               $providers[$provider]['feeds'][$feed]['theme']['page'],
             ),
-            // @TODO do we really need specific permissions for each feed?
+            // @TODO do we really need specific permissions for each feed or just "view meteologic feed"?
+            // For now leave it as "access content".
             'access arguments' => array('access content'),
           );
         }
