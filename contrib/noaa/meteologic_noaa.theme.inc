@@ -2,6 +2,11 @@
 /**
  * @file
  * Meteologic NOAA theme functions.
+ *
+ * NOTE: These theme functions *must* live in this file, named exactly like this.
+ * We enforce convention over configuration in order to make things simpler
+ * for submodules so theme callbacks must always live in "MODULENAME.theme.inc",
+ * located in the module's root.
  */
 
 /**

@@ -23,6 +23,10 @@ function hook_meteologic_provider_info() {
           // Theme functions.
           // Specify a callback function for both themes and blocks. If there's
           // no change just specify the same one twice.
+          // 
+          // NOTE: You do not have to implement hook_theme() yourself
+          // but you DO have to place these callbacks in a file called:
+          // "MODULENAME.theme.inc", located in the module's root directory.
           'theme' => array(
             'block' => 'foo_current_block',
             'page' => 'foo_current_page',
