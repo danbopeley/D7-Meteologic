@@ -150,24 +150,31 @@ function meteologic_menu() {
   // Generate feed pages.
   $metelogic_page_path = variable_get('metelogic_page_path', 'meteologic');
 
+  // @TODO do we really need specific permissions for each feed or just "view meteologic feed"?
+  // For now leave it as "access content".
+  $access_arguments = array('access content');
+
   if (variable_get('meteologic_page_enable', FALSE)) {
     foreach (meteologic_feeds() as $feed => $feed_info) {
-      if (variable_get('meteologic_feed_pages', FALSE)) {
-        $providers = meteologic_providers();
+      if (!empty($feed_info['providers'])) {
+        // Generate the default page with the provider selected in settings.
+        $items[$metelogic_page_path . "/{$feed}"] = array(
+          'title' => $feed_info['name'],
+          'page callback' => '_meteologic_render_page',
+          'page arguments' => array($feed),
+          'access arguments' => $access_arguments,
+        );
 
-        foreach ($feed_info['providers'] as $provider) {
-          $items[$metelogic_page_path . "/{$feed}/{$provider}"] = array(
-            'title' => "{$providers[$provider]['name']} {$feed_info['name']}",
-            'page callback' => '_meteologic_render_page',
-            'page arguments' => array(
-              $feed,
-              $provider,
-              $providers[$provider]['feeds'][$feed]['theme']['page'],
-            ),
-            // @TODO do we really need specific permissions for each feed or just "view meteologic feed"?
-            // For now leave it as "access content".
-            'access arguments' => array('access content'),
-          );
+        // Generate a page for each provider implementing the feed.
+        if (variable_get('meteologic_feed_pages', FALSE)) {
+          foreach ($feed_info['providers'] as $provider) {
+            $items[$metelogic_page_path . "/{$feed}/{$provider['_slug']}"] = array(
+              'title' => "{$provider['name']} {$feed_info['name']}",
+              'page callback' => '_meteologic_render_page',
+              'page arguments' => array($feed, $provider),
+              'access arguments' => $access_arguments,
+            );
+          }
         }
       }
     }
@@ -183,13 +190,28 @@ function meteologic_menu() {
  *
  * @see meteologic_menu()
  */
-function _meteologic_render_page($feed, $provider, $theme) {
-  return array(
-    '#theme' => $theme,
-    '#pre_render' => array('meteologic_pre_render'),
-    '#meteologic_feed' => $feed,
-    '#meteologic_provider' => $provider,
-  );
+function _meteologic_render_page($feed, $provider = NULL) {
+  if ($feed = meteologic_feeds($feed)) {
+    if (!isset($provider)) {
+      $provider = meteologic_provider_default($feed['_slug']);
+    }
+
+    include_once drupal_get_path('module', 'devel') . '/krumo/class.krumo.php';
+    krumo($feed['providers'][$provider]);die;
+
+    if (isset($feed['providers'][$provider]['feeds'][$feed['_slug']]['theme']['page'])) {
+      $theme = $feed['providers'][$provider]['feeds'][$feed['_slug']]['theme']['page'];
+
+      return array(
+        '#theme' => $theme,
+        '#pre_render' => array('meteologic_pre_render'),
+        '#meteologic_feed' => $feed,
+        '#meteologic_provider' => $provider,
+      );
+    }
+  }
+
+  return MENU_NOT_FOUND;
 }
 
 /**
