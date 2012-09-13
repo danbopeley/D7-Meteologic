@@ -15,10 +15,13 @@ function meteologic_noaa_meteologic_provider_info() {
       'feeds' => array(
         'current' => array(
           'path' => 'http://w1.weather.gov/xml/current_obs/@station.xml',
-          'theme' => array(
-            'block' => 'meteologic_noaa_current',
-            'page' => 'meteologic_noaa_current',
-          ),
+          'tokens' => array('@station'),
+          'theme' => 'meteologic_noaa_current',
+        ),
+        'forecast' => array(
+          'path' => 'http://graphical.weather.gov/xml/SOAP_server/ndfdSOAPclientByDay.php?lat=@lat&lon=@lon&format=12+hourly&startDate=&numDays=@days&Submit=Submit',
+          'tokens' => array('@lat', '@lon', '@days'),
+          'theme' => 'meteologic_noaa_forecast',
         ),
       ),
       'stations' => array(
