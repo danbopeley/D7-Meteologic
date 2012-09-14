@@ -14,7 +14,7 @@ function meteologic_noaa_meteologic_provider_info() {
       'settings' => 'meteologic_noaa_settings_form',
       'feeds' => array(
         'current' => array(
-          'path' => 'http://w1.weather.gov/xml/current_obs/@station.xml',
+          'path' => variable_get_value('meteologic_noaa_current_path'),
           'tokens' => array('@station'),
           'theme' => 'meteologic_noaa_current',
         ),
@@ -50,4 +50,20 @@ function meteologic_noaa_stations_weather() {
 function meteologic_noaa_stations_radar() {
   module_load_include('inc', 'meteologic_noaa', 'meteologic_noaa_stations');
   return _meteologic_noaa_stations_radar();
+}
+
+/**
+ * Implements hook_variable_info().
+ */
+function meteologic_noaa_variable_info() {
+  $variables = array();
+
+  $variables['meteologic_noaa_current_path'] = array(
+    'title' => t('NOAA Current conditions feed path'),
+    'default' => 'http://w1.weather.gov/xml/current_obs/@station.xml',
+    'group' => 'meteologic_noaa',
+    'token' => TRUE,
+  );
+
+  return $variables;
 }
