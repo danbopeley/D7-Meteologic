@@ -58,15 +58,11 @@ function hook_meteologic_provider_info() {
 //            'block' => 'foo_current_block',
 //            'page' => 'foo_current_page',
 //          ),
+          // Stations callback.
+          // Specify a callback function that will be used to load a list of
+          // stations for this provider's feed.
+          'stations' => 'foo_stations_current',
         ),
-      ),
-
-      // Stations callback.
-      // You most likely just need to implement the "weather" callback.
-      // However, some providers have different stations for radar feeds.
-      'stations' => array(
-        'weather' => 'foo_stations_weather',
-        'radar' => 'foo_stations_radar',
       ),
     ),
   );
