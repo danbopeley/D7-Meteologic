@@ -428,7 +428,7 @@ function meteologic_feeds($feed = NULL, $reset = FALSE) {
           if (array_key_exists($name, $provider_info['feeds'])) {
             // We actually return a custom version of the provider's info,
             // suited to this particular feed.
-            $provider_info['enabled'] = variable_get("meteologic_{$name}_{$provider_slug}", FALSE);
+            $provider_info['enabled'] = variable_get("meteologic_{$name}_{$provider_slug}", TRUE);
             $provider_feeds = $provider_info['feeds'];
             unset($provider_info['feeds']);
 
@@ -623,7 +623,7 @@ function meteologic_get_data($feed, $provider = NULL, $reset = FALSE) {
   }
 
   if (isset($provider_info['path'])) {
-    // Replace tokens.
+    // @TODO Replace tokens.
 //      if ($station = variable_get("meteologic_{$feed}_{$provider}_station", NULL)) {
     if ($station = 'KASE') { // @TODO remove this.
       $path = str_replace('@station', $station, $provider_info['path']);

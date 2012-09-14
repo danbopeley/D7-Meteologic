@@ -249,15 +249,13 @@ function meteologic_form_feed_config($form, &$form_state, $feed) {
   $varname = "meteologic_fallback_{$feed}";
   $form_state['meteologic_feed'] = $feed;
 
-  $meteologic_providers = meteologic_providers();
-
-  foreach ($feed_info['providers'] as $slug) {
+  foreach ($feed_info['providers'] as $slug => $provider_info) {
     $varname = "meteologic_{$feed}_{$slug}";
 
     $form['enabled'][$varname] = array(
       '#type' => 'checkbox',
-      '#title' => $meteologic_providers[$slug]['name'],
-      '#default_value' => variable_get($varname, FALSE),
+      '#title' => $provider_info['name'],
+      '#default_value' => variable_get($varname, TRUE),
     );
   }
 
@@ -285,15 +283,15 @@ function meteologic_form_feed_config($form, &$form_state, $feed) {
     if (empty($weights)) {
       // This option hasn't been set yet, so manually populate the
       // providers that implement this feed.
-      foreach ($feed_info['providers'] as $provider) {
-        $weights[$provider] = 0;
+      foreach ($feed_info['providers'] as $slug => $provider_info) {
+        $weights[$slug] = 0;
       }
     }
 
     foreach ($weights as $slug => $weight) {
       $form['order']['providers'][$slug] = array(
         'name' => array(
-          '#markup' => $meteologic_providers[$slug]['name'],
+          '#markup' => $provider_info['name'],
         ),
         'weight' => array(
           '#type' => 'weight',
