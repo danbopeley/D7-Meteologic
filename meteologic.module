@@ -374,9 +374,7 @@ function meteologic_block_view($delta = '') {
     $subject = "{$provider['name']} {$feed['name']}";
   }
 
-  $theme_callback = is_array($provider['theme'])
-    ? $provider['theme']['page']
-    : $provider['theme'];
+  $theme_callback = is_array($provider['theme']) ? $provider['theme']['page'] : $provider['theme'];
 
   $block['subject'] = $subject;
   $block['content'] = array(
@@ -624,50 +622,59 @@ function meteologic_get_data($feed, $provider = NULL, $reset = FALSE) {
   }
 
   if (isset($provider_info['path'])) {
-    // @TODO Replace tokens.
-//      if ($station = variable_get("meteologic_{$feed}_{$provider}_station", NULL)) {
-    if ($station = 'KASE') { // @TODO remove this.
-      $path = str_replace('@station', $station, $provider_info['path']);
-      $cache_key = "meteologic_{$feed}_{$provider}_result";
+    $cache_key = "meteologic_result_{$feed}_{$provider}";
 
-      // @TODO implement authentication for any feeds that require it.
-      // Will do when we run into this scenario.
-      // Check Drupal's cache.
-      if (!$reset && $cache = cache_get($cache_key)) {
-        if (!empty($cache->data)) {
-          $results[$feed][$provider] = $cache->data;
-          return $cache->data;
-        }
-      }
+    // Load tokens and replacements.
+    $tokens = isset($provider_info['tokens']) && is_array($provider_info['tokens'])
+        ? $provider_info['tokens'] : array();
 
-      // Let' try to keep it simple for now although we might need to use CURL
-      // eventually.
-      if ($xml = simplexml_load_file($path)) {
-        // Convert XML to array.
-        // @see http://gaarf.info/2009/08/13/xml-string-to-php-array/
-        $array = json_decode(json_encode((array) $xml), 1);
-        // We use the permanent cache because the data gets updated during
-        // cron runs anyway.
-        cache_set($cache_key, $array, 'cache', CACHE_PERMANENT);
-        $results[$feed][$provider] = $array;
+    $replace = array();
+    foreach ($tokens as $token) {
+      $token = str_replace('@', '', $token);
+      $varname = "{$provider_info['module']}_{$feed}_{$token}";
+      $replace[] = variable_get_value($varname);
+    }
 
-        if (variable_get('meteologic_dev', TRUE)) {
-          watchdog('meteologic', 'Retrieved data for feed: %feed from provider: %provider', array(
-            '%feed' => $feed_info['name'],
-            '%provider' => $provider_info['name'],
-            ), WATCHDOG_INFO);
-        }
-        return $array;
+    // Replace tokens.
+    $path = str_replace($tokens, $replace, $provider_info['path']);
+
+    // @TODO implement authentication for any feeds that require it.
+    // Will do when we run into this scenario.
+    // Check Drupal's cache.
+    if (!$reset && $cache = cache_get($cache_key)) {
+      if (!empty($cache->data)) {
+        $results[$feed][$provider] = $cache->data;
+        return $cache->data;
       }
-      else if (!$has_provider) {
-        // @TODO check for fallback option & feed.
-      }
-      else {
-        watchdog('meteologic', 'Failed to get data for feed: %feed from provider: %provider', array(
+    }
+
+    // Let' try to keep it simple for now although we might need to use CURL
+    // eventually.
+    if ($xml = simplexml_load_file($path)) {
+      // Convert XML to array.
+      // @see http://gaarf.info/2009/08/13/xml-string-to-php-array/
+      $array = json_decode(json_encode((array) $xml), 1);
+      // We use the permanent cache because the data gets updated during
+      // cron runs anyway.
+      cache_set($cache_key, $array, 'cache', CACHE_PERMANENT);
+      $results[$feed][$provider] = $array;
+
+      if (variable_get('meteologic_dev', TRUE)) {
+        watchdog('meteologic', 'Retrieved data for feed: %feed from provider: %provider', array(
           '%feed' => $feed_info['name'],
           '%provider' => $provider_info['name'],
-          ), WATCHDOG_ERROR);
+          ), WATCHDOG_INFO);
       }
+      return $array;
+    }
+    else if (!$has_provider) {
+      // @TODO check for fallback option & feed.
+    }
+    else {
+      watchdog('meteologic', 'Failed to get data for feed: %feed from provider: %provider', array(
+        '%feed' => $feed_info['name'],
+        '%provider' => $provider_info['name'],
+        ), WATCHDOG_ERROR);
     }
   }
 
