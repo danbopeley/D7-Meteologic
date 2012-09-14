@@ -288,8 +288,13 @@ function meteologic_theme() {
     $callbacks = array();
 
     foreach ($provider['feeds'] as $feed) {
-      foreach ($feed['theme'] as $callback) {
-        $callbacks[] = $callback;
+      if (is_array($feed['theme'])) {
+        foreach ($feed['theme'] as $callback) {
+          $callbacks[] = $callback;
+        }
+      }
+      else {
+        $callbacks[] = $feed['theme'];
       }
     }
 
