@@ -13,7 +13,10 @@ function hook_meteologic_provider_info() {
       // Provider name.
       'name' => t('Foo Provider'),
       // Settings form callback, this is optional but can be useful to allow
-      // users to customize placeholder tokens (see below).
+      // users to customize placeholder tokens (see below). If used, this file
+      // *must* live in a file called "module.admin.inc".
+      //
+      // For example: "foo_admin.inc".
       'settings' => 'foo_settings_form',
       // An array of feeds implemented, where the key is the feed's slug and
       // the array contains an array with information.

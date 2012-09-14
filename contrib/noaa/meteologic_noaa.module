@@ -33,18 +33,6 @@ function meteologic_noaa_meteologic_provider_info() {
 }
 
 /**
- * Form callback.
- * Display settings form for Meteologic Mesowest.
- */
-function meteologic_noaa_settings_form() {
-  $form = array();
-
-  // @TODO insert options here.
-
-  return system_settings_form($form);
-}
-
-/**
  * Returns a list of weather stations for the NOAA provider.
  * This is a wrapper around _meteologic_noaa_stations_weather(), which allows
  * us to lazy-load the extra big file.
