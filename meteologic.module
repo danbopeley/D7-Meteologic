@@ -454,10 +454,8 @@ function meteologic_meteologic_feed_info() {
   return array(
     'current' => array(
       'name' => t('Current conditions'),
-//      'block' => TRUE,
-//      'page' => TRUE,
     ),
-    'point' => array(
+    'forecast' => array(
       'name' => t('Point forecast'),
     ),
     'radar' => array(
