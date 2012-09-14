@@ -66,3 +66,12 @@ function theme_meteologic_noaa_current($variables) {
 
   return theme('table', array('header' => array(), 'rows' => $rows));
 }
+
+/**
+ * Provides a theme for them NOAA Current Conditions feed.
+ */
+function theme_meteologic_noaa_forecast($variables) {
+  $data = $variables['data'];
+
+  // @TODO do something with these results.
+}
