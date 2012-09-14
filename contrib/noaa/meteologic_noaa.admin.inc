@@ -11,6 +11,9 @@
 function meteologic_noaa_settings_form() {
   $form = array();
 
+  // Grab provider info.
+  $provider = meteologic_providers('noaa');
+
   $form['wrapper'] = array(
     '#type' => 'fieldset',
     '#title' => t('NOAA Settings'),
@@ -26,7 +29,6 @@ function meteologic_noaa_settings_form() {
   );
 
   // Get a list of placeholder tokens.
-  $provider = meteologic_providers('noaa');
   $tokens = implode(', ', $provider['feeds']['current']['tokens']);
 
   $form['wrapper']['current']['meteologic_noaa_current_path'] = array(
@@ -35,7 +37,16 @@ function meteologic_noaa_settings_form() {
     '#type' => 'textfield',
     '#default_value' => variable_get_value('meteologic_noaa_current_path'),
     '#required' => TRUE,
-    '#weight' => 10,
+  );
+
+  $stations = call_user_func($provider['feeds']['current']['stations']);
+
+  $form['wrapper']['current']['meteologic_noaa_current_station'] = array(
+    '#title' => t('Station'),
+    '#description' => t(''),
+    '#type' => 'select',
+    '#options' => $stations,
+    '#default_value' => variable_get_value('meteologic_noaa_current_station'),
   );
 
   // Point forecast feed settings.
@@ -47,7 +58,6 @@ function meteologic_noaa_settings_form() {
   );
 
   // Get a list of placeholder tokens.
-  $provider = meteologic_providers('noaa');
   $tokens = implode(', ', $provider['feeds']['forecast']['tokens']);
 
   $form['wrapper']['forecast']['meteologic_noaa_forecast_path'] = array(
@@ -56,7 +66,6 @@ function meteologic_noaa_settings_form() {
     '#type' => 'textfield',
     '#default_value' => variable_get_value('meteologic_noaa_forecast_path'),
     '#required' => TRUE,
-    '#weight' => 10,
   );
 
   return system_settings_form($form);

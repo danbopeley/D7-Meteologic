@@ -12,7 +12,7 @@
  */
 function _meteologic_noaa_stations_weather() {
   return array(
-    'INIT' => t('Select A Station'),
+    'INIT' => t('Select a Station'),
     'PADK' => t('AK - Adak Island, Adak Airport'),
     'PAFM' => t('AK - Ambler, Ambler Airport'),
     'PAKP' => t('AK - Anaktuvuk Pass, Anaktuvuk Pass Airport'),

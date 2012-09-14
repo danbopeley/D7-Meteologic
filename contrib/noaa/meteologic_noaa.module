@@ -63,6 +63,13 @@ function meteologic_noaa_variable_info() {
     'token' => TRUE,
   );
 
+  $variables['meteologic_noaa_current_station'] = array(
+    'title' => t('NOAA Current conditions feed station'),
+    'default' => 'KASE',
+    'group' => 'meteologic_noaa',
+    'token' => TRUE,
+  );
+
   $variables['meteologic_noaa_forecast_path'] = array(
     'title' => t('NOAA Point forecast feed path'),
     'default' => 'http://graphical.weather.gov/xml/SOAP_server/ndfdSOAPclientByDay.php?lat=@lat&lon=@lon&format=12+hourly&startDate=&numDays=@days&Submit=Submit',
