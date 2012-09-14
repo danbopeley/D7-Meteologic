@@ -267,11 +267,12 @@ function meteologic_form_feed_config($form, &$form_state, $feed) {
       '#collapsible' => FALSE,
     );
 
-    $form['order']['meteologic_fallback_current'] = array(
+    $varname = "meteologic_fallback_{$feed}";
+    $form['order'][$varname] = array(
       '#type' => 'checkbox',
       '#title' => t('Fallback if unavailable'),
       '#description' => t('If the selected provider is unavailable, display the results for the next available one.'),
-      '#default_value' => variable_get('meteologic_fallback_current', FALSE),
+      '#default_value' => variable_get($varname, FALSE),
     );
 
     $form['order']['providers'] = array(
