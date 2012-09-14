@@ -170,6 +170,7 @@ function meteologic_menu() {
         $items[$metelogic_page_path . "/{$feed}/default"] = array(
           'title' => $feed_info['name'],
           'type' => MENU_DEFAULT_LOCAL_TASK,
+          'weight' => -50,
         );
 
         // Generate a page for each provider implementing the feed.
