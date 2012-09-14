@@ -206,30 +206,28 @@ function _meteologic_render_page($feed, $provider = NULL) {
 
     $provider = $feed['providers'][$provider];
 
-    if (isset($provider['theme']['page'])) {
-      $theme = $provider['theme']['page'];
+    $theme_callback = is_array($provider['theme']) ? $provider['theme']['page'] : $provider['theme'];
 
-      // Set breadcrumb and page title.
-      $metelogic_page_path = variable_get('metelogic_page_path', 'meteologic');
-      $breadcrumb = drupal_get_breadcrumb();
+    // Set breadcrumb and page title.
+    $metelogic_page_path = variable_get('metelogic_page_path', 'meteologic');
+    $breadcrumb = drupal_get_breadcrumb();
 
-      if (!isset($provider_orig)) {
-        $breadcrumb[] = l(t($feed['name']), "{$metelogic_page_path}/{$feed['_slug']}");
-      }
-      else {
-        $breadcrumb[] = l(t($provider['name']), "{$metelogic_page_path}/{$feed['_slug']}/{$provider['_slug']}");
-        drupal_set_title(t("@feed - @provider", array('@feed' => $feed['name'], '@provider' => $provider['name'])));
-      }
-
-      drupal_set_breadcrumb($breadcrumb);
-
-      return array(
-        '#theme' => $theme,
-        '#pre_render' => array('meteologic_pre_render'),
-        '#meteologic_feed' => $feed['_slug'],
-        '#meteologic_provider' => $provider['_slug'],
-      );
+    if (!isset($provider_orig)) {
+      $breadcrumb[] = l(t($feed['name']), "{$metelogic_page_path}/{$feed['_slug']}");
     }
+    else {
+      $breadcrumb[] = l(t($provider['name']), "{$metelogic_page_path}/{$feed['_slug']}/{$provider['_slug']}");
+      drupal_set_title(t("@feed - @provider", array('@feed' => $feed['name'], '@provider' => $provider['name'])));
+    }
+
+    drupal_set_breadcrumb($breadcrumb);
+
+    return array(
+      '#theme' => $theme_callback,
+      '#pre_render' => array('meteologic_pre_render'),
+      '#meteologic_feed' => $feed['_slug'],
+      '#meteologic_provider' => $provider['_slug'],
+    );
   }
 
   return MENU_NOT_FOUND;
@@ -359,35 +357,30 @@ function meteologic_block_view($delta = '') {
   if (array_key_exists($delta, $feeds)) {
     $feed = $delta;
     $provider = meteologic_provider_default($delta);
-    $provider_info = meteologic_providers($provider);
-    $subject = $feeds[$feed]['name'];
+    $feed = meteologic_feeds($feed);
+    $subject = $feed['name'];
+    $provider = $feed['providers'][$provider];
   }
   else {
     list($feed, $provider) = explode('___', $delta);
-    $provider_info = meteologic_providers($provider);
-    $subject = "{$provider_info['name']} {$feeds[$feed]['name']}";
+    $feed = meteologic_feeds($feed);
+    $provider = $feed['providers'][$provider];
+    $subject = "{$provider['name']} {$feed['name']}";
   }
 
-  if (isset($provider_info['feeds'][$feed]['theme']['block'])) {
-    $theme_callback = $provider_info['feeds'][$feed]['theme']['block'];
+  $theme_callback = is_array($provider['theme'])
+    ? $provider['theme']['page']
+    : $provider['theme'];
 
-    $block['subject'] = $subject;
-    $block['content'] = array(
-      '#theme' => $theme_callback,
-      '#pre_render' => array('meteologic_pre_render'),
-      '#meteologic_feed' => $feed,
-      '#meteologic_provider' => $provider,
-    );
+  $block['subject'] = $subject;
+  $block['content'] = array(
+    '#theme' => $theme_callback,
+    '#pre_render' => array('meteologic_pre_render'),
+    '#meteologic_feed' => $feed['_slug'],
+    '#meteologic_provider' => $provider['_slug'],
+  );
 
-    return $block;
-  }
-
-  // If we get this far something went wrong.
-  watchdog('meteologic', 'Missing theme callback for feed: %feed from provider: %provider', array(
-    '%feed' => $feeds[$feed]['name'],
-    '%provider' => $provider_info['name'],
-    ), WATCHDOG_ERROR);
-  return array();
+  return $block;
 }
 
 /**
@@ -617,7 +610,7 @@ function meteologic_get_data($feed, $provider = NULL, $reset = FALSE) {
 
   // Load feed info.
   $feed_info = meteologic_feeds($feed);
-  $provider_info =& $feed_info['providers'][$provider];
+  $provider_info = & $feed_info['providers'][$provider];
 
   if (variable_get('meteologic_dev', TRUE)) {
     watchdog('meteologic', 'Looking up data for feed: %feed from provider: %provider', array(
