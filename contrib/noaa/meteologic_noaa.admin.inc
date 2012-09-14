@@ -68,5 +68,32 @@ function meteologic_noaa_settings_form() {
     '#required' => TRUE,
   );
 
+  $form['wrapper']['forecast']['meteologic_noaa_forecast_lat'] = array(
+    '#title' => t('Latitude'),
+    '#description' => t('Alter the NOAA Point Forecast Latitude.'),
+    '#type' => 'textfield',
+    '#default_value' => variable_get_value('meteologic_noaa_forecast_lat'),
+    '#size' => 10,
+    '#required' => TRUE,
+  );
+
+  $form['wrapper']['forecast']['meteologic_noaa_forecast_lon'] = array(
+    '#title' => t('Longitude'),
+    '#description' => t('Alter the NOAA Point Forecast Longitude.'),
+    '#type' => 'textfield',
+    '#default_value' => variable_get_value('meteologic_noaa_forecast_lon'),
+    '#size' => 10,
+    '#required' => TRUE,
+  );
+
+  $form['wrapper']['forecast']['meteologic_noaa_forecast_days'] = array(
+    '#title' => t('Days'),
+    '#description' => t('Alter number of Days for the NOAA Point Forecast.'),
+    '#type' => 'select',
+    '#default_value' => variable_get_value('meteologic_noaa_forecast_days'),
+    '#options' => drupal_map_assoc(array(3, 4, 5, 6, 7, 8, 9)),
+    '#required' => TRUE,
+  );
+
   return system_settings_form($form);
 }

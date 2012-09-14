@@ -77,5 +77,26 @@ function meteologic_noaa_variable_info() {
     'token' => TRUE,
   );
 
+  $variables['meteologic_noaa_forecast_lat'] = array(
+    'title' => t('NOAA Point forecast feed latitude'),
+    'default' => 39.22583,
+    'group' => 'meteologic_noaa',
+    'token' => TRUE,
+  );
+
+  $variables['meteologic_noaa_forecast_lon'] = array(
+    'title' => t('NOAA Point forecast feed longitude'),
+    'default' => -106.86837,
+    'group' => 'meteologic_noaa',
+    'token' => TRUE,
+  );
+
+  $variables['meteologic_noaa_forecast_days'] = array(
+    'title' => t('NOAA Point forecast feed days'),
+    'default' => 3,
+    'group' => 'meteologic_noaa',
+    'token' => TRUE,
+  );
+
   return $variables;
 }
