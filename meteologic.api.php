@@ -25,10 +25,10 @@ function hook_meteologic_provider_info() {
         'current' => array(
           // Feed path.
           // The path is always available as a variable with the name:
-          // "meteologic_provider_path", where "provider" is the slug of
+          // "module_feed_path", where "provider" is the slug of
           // the provider.
           //
-          // For example: "meteologic_foo_path".
+          // For example: "foo_current_path".
           'path' => 'http://example.com/foo',
 
           // Feed tokens. These are values that will get replaced by
