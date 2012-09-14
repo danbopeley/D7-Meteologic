@@ -33,12 +33,12 @@ function hook_meteologic_provider_info() {
 
           // Feed tokens. These are values that will get replaced by
           // customizable variables in the provider's settings. The
-          // corresponding variable name MUST be "meteologic_provider_token",
+          // corresponding variable name MUST be "module_feed_token",
           // where "provider" is the slug of the provider and "token is the
           // name of the token minus the @.
           //
           // For example, for @station, the variable name will be:
-          // "meteologic_foo_station".
+          // "foo_current_station".
           'tokens' => array('@station'),
 
           // Theme functions.
