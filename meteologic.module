@@ -266,6 +266,9 @@ function meteologic_cron_queue_info() {
  */
 function meteologic_hook_info() {
   return array(
+    'meteologic_feed_info' => array(
+      'group' => 'meteologic',
+    ),
     'meteologic_provider_info' => array(
       'group' => 'meteologic',
     ),
