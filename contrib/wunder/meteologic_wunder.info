@@ -1,0 +1,9 @@
+name = Meteologic Wunderground
+description = Provides Meteologic integration for the MesoWest forecast provider.
+package = Weather
+version = 7.x-1.1-dev
+dependencies[] = meteologic
+
+; Left intentionally for development.
+core = 7.x
+project = meteologic_wunder

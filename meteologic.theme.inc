@@ -19,7 +19,6 @@ function theme_meteologic_form_feed_config($variables) {
     $class = 'meteologic-provider-weight';
     $header = array(t('Name'), t('Weight'));
     $rows = array();
-
     foreach (element_children($form['order']['providers']) as $id) {
       $form['order']['providers'][$id]['weight']['#attributes']['class'] = array($class);
       $rows[] = array(

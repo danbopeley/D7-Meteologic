@@ -78,6 +78,10 @@ function meteologic_form_settings() {
     '#description' => t('Development mode logs more watchdog entries such as debug statments whereas production will only log errors.'),
     '#default_value' => variable_get('meteologic_dev', TRUE),
   );
+  
+  $form['misc']['meteologic_dev_docu'] = array(
+      '#markup' => t('<span style="font-size:smaller;">Development mode logs more watchdog entries such as debug e whereas production will only log errors.</span>'),
+  );
 
   $form['#submit'][] = 'meteologic_form_settings_submit';
 
@@ -403,7 +407,7 @@ function meteologic_update_form() {
 
   $form['update'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Manula Update'),
+    '#title' => t('Manual Update'),
     '#description' => t("Here you can manually configure which feeds from which providers to update."),
     '#collapsible' => FALSE,
     '#tree' => TRUE,
@@ -425,7 +429,7 @@ function meteologic_update_form() {
           $form['update'][$feed][$provider] = array(
             '#type' => 'checkbox',
             '#title' => $provider_info['name'],
-            '#default_value' => TRUE,
+            '#default_value' => FALSE,
           );
         }
       }
@@ -449,16 +453,17 @@ function meteologic_update_form() {
  */
 function meteologic_update_form_submit($form, &$form_state) {
   $feeds = array();
-
   foreach ($form_state['values']['update'] as $feed => $info) {
+    $update = array_values($info);
+    if($update[0] === 1){
     $feed = meteologic_feeds($feed);
     foreach ($info as $provider => $enabled) {
       if (!$enabled) {
         $feed['providers'][$provider]['enabled'] = FALSE;
       }
     }
-
     $feeds[] = $feed;
+    }
   }
 
   // Use Batch API to update each one.

@@ -1,0 +1,118 @@
+<?php
+/**
+ * @file
+ * Meteologic Mesowest module.
+ */
+
+
+/**
+ * Implements hook_meteologic_provider_info();
+ */
+function meteologic_surfline_meteologic_provider_info() {
+  return array(
+    'surfline' => array(
+      'name' => t('Surfline'),
+      'settings' => 'meteologic_surfline_settings_form',
+      'feeds' => array(
+        'surf' => array(
+          'path' => variable_get_value('meteologic_surfline_feed_path'),
+          'tokens' => array('@feedid'),
+          'theme' => 'meteologic_surfline_report',
+          'stations' => 'meteologic_surfline_feedids',
+          'custom_preprocess' => 'meteologic_surfline_custom_preprocess',
+        ),
+      ),
+    ),
+  );
+}
+
+
+
+/**
+ * Returns a list of weather stations for the NOAA provider.
+ * This is a wrapper around _meteologic_noaa_stations_weather(), which allows
+ * us to lazy-load the extra big file.
+ */
+function meteologic_surfline_feedids() {
+  module_load_include('inc', 'meteologic_surfline', 'meteologic_surfline_feedids');
+  return _meteologic_surfline_feedids();
+}
+
+
+
+/**
+ * Implements hook_variable_info().
+ *
+ */
+function meteologic_surfline_variable_info() {
+  $variables = array();
+
+  $variables['meteologic_surfline_feed_path'] = array(
+      'title' => t('NDBC Bouy Feed Path'),
+      'default' => 'http://www.surfline.com/rss/region.cfm?id=@feedid',
+      'group' => 'meteologic_surfline',
+      'token' => TRUE,
+  );
+
+  $variables['meteologic_surfline_surf_feedid'] = array(
+      'title' => t('Surfline Feed ID'),
+      'default' => '3238',
+      'group' => 'meteologic_surfline',
+      'token' => TRUE,
+  );
+
+  return $variables;
+}
+/**
+ * Preprocess callback.
+ *
+ * @see btm_blog_theme()
+ */
+/**
+ * Custom preprocess
+ * @see meteologic_surfline_meteologic_provider_info()
+ * 
+ * Modifie feed data after feed xml has been 
+ * processed through json into array but before 
+ * data is saved into cache
+ * @see ../meteologic.module:meteologic_get_data()
+ */
+function meteologic_surfline_custom_preprocess($data) {
+ 
+  //we mostly want to save the goodies in description str 
+  if(isset($data['channel']['item'])){
+    
+    $surf_array = $data['channel']['item'];
+    
+    
+
+  }else{ //couldnt find description but set it anyways
+    $surf_array = array('Surfline Report Currently Not Available');
+  }
+  /*
+  //through in the pubDate
+  if($data['channel']['item']['pubDate']){
+    $pubDate = $data['channel']['item']['pubDate'];
+  }else{
+    $pubDate = 'na';
+  }
+  
+  //through in the title
+  if($data['channel']['item']['title']){
+    $station = $data['channel']['item']['title'];
+  }else{
+    $station = 'na';
+  }
+   */
+  //throw it all into a nice looking array and... 
+  $processed_data = array(
+      //'station' => $station,
+      //'pubDate' => $pubDate,
+      //'link' => $station,
+      //'guid' => $station,
+      'surf' => $surf_array,
+      );
+     
+  //return it to from whence it came ../meteologic.module:meteologic_get_data()
+  return $processed_data;
+}

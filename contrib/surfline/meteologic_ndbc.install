@@ -1,16 +1,16 @@
 <?php
 /**
  * @file
- * Meteologic installation hooks.
+ * Meteologic Surfline installation hooks.
  */
 
 /**
  * Implements hook_uninstall().
  */
-function meteologic_uninstall() {
+function meteologic_surfline_uninstall() {
   $result = db_select('variable', 'v')
     ->fields('v', array('name'))
-    ->condition('name', 'meteologic_%', 'LIKE')
+    ->condition('name', 'meteologic_surfline_%', '=')
     ->execute();
 
 
