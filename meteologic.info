@@ -1,8 +1,8 @@
-name = Meteologic
-description = Provides a framework for reading external weather feeds.
-package = Weather
-version = 7.x-1.0-dev
-
-; Left intentionally for development.
-core = 7.x
+name            = Meteologic
+description     = Provides a modular framework in which functionality can be configured to import weather data from a variety of sources 
+version         = 7.x-1.4
+package         = Weather
+dependencies[] = variable
+core            = 7.x
 project = meteologic
+

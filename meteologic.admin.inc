@@ -41,11 +41,11 @@ function meteologic_form_settings() {
     '#default_value' => variable_get('meteologic_page_enable', FALSE),
   );
 
-  $form['pages']['metelogic_page_path'] = array(
+  $form['pages']['meteologic_page_path'] = array(
     '#type' => 'textfield',
     '#title' => t('Base path for pages'),
     '#description' => t('Define a base path for Meteologic feed pages. The default is "meteologic", so each feed will have a URL like this: meteologic/current, meteologic/radar and so on. Please not that this path will only be used as a base and will have no page of its own.'),
-    '#default_value' => variable_get('metelogic_page_path', 'meteologic'),
+    '#default_value' => variable_get('meteologic_page_path', 'meteologic'),
     '#states' => array(
       'visible' => array(
         'input[name="meteologic_page_enable"]' => array('checked' => TRUE),
@@ -77,6 +77,31 @@ function meteologic_form_settings() {
     '#title' => t('Development mode'),
     '#description' => t('Development mode logs more watchdog entries such as debug statments whereas production will only log errors.'),
     '#default_value' => variable_get('meteologic_dev', TRUE),
+  );
+  
+  $form['misc']['meteologic_usebatch'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Use Batch Updates'),
+      '#description' => t('Require the updates to run as batch jobs. Useful if importing large amounts of data from many different feeds or locations. Not normally required.'),
+      '#default_value' => variable_get('meteologic_usebatch', FALSE),
+  );
+  
+  $form['misc']['meteologic_details_path'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Path to Weather Details Page'),
+      '#description' => t('You can define a path to the weather details page here. defaults to "weather"'),
+      '#default_value' => variable_get('meteologic_details_path', 'weather'),
+  );
+  
+  $form['misc']['meteologic_details_text'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Link Text to Details'),
+      '#description' => t('Set the link text for the detailed weather link.'),
+      '#default_value' => variable_get('meteologic_details_text', 'Detailed Weather'),
+  );
+  
+  $form['misc']['meteologic_dev_docu'] = array(
+      '#markup' => t('<span style="font-size:smaller;">Development mode logs more watchdog entries such as debug e whereas production will only log errors.</span>'),
   );
 
   $form['#submit'][] = 'meteologic_form_settings_submit';
@@ -149,6 +174,17 @@ function meteologic_form_settings_cron() {
       }
     }
   }
+  
+  $form['cache_state'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Cached Weather Data'),
+      '#description' => t("Cached data"),
+      '#collapsible' => FALSE,
+      '#tree' => TRUE,
+  );
+  
+  
+  
 
   $form['#submit'][] = 'meteologic_form_settings_cron_submit';
 
@@ -226,6 +262,100 @@ function meteologic_page_feeds() {
 
   return $page;
 }
+
+
+
+/**
+ * Form callback.
+ * Displays checkboxes to include data from specific feeds for homepage and footer widgets.
+ */
+function meteologic_widgets_form() {
+  $form = array();
+  
+  $form['widgetintro'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Meteologic Widgets'),
+      '#description' => t(''),
+      '#collapsible' => FALSE,
+      '#tree' => TRUE,
+  );
+  
+  $form['widgetintro']['desc'] = array(
+      '#markup' => 'The meteologic module provides two configurable blocks. The \'Homepage Widget\' is intended for placement on the homepage
+       while the footer/global widget is intended for placement globally. You may select what feed data is included in each widget block. Once configured, copy the provided base tpl files for each widget to your theme folder and customize.
+      Preprocess functions pass data in variables named matching their corresponding theme and are available for rendering output in these customizable tpl files.',
+  );
+
+  $form['homepagewidget'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Homepage Widget'),
+      '#description' => t('Enabled Feeds For Homepage Widget'),
+      '#collapsible' => FALSE,
+      '#tree' => TRUE,
+  );
+
+  $form['footerwidget'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Footer Widget'),
+      '#description' => t('Enabled Feeds For Global Footer Widget'),
+      '#collapsible' => FALSE,
+      '#tree' => TRUE,
+  );
+
+  $mf = meteologic_feeds();
+
+  if($mf){
+    foreach ($mf as $name => $info) {
+      $form['homepagewidget']['meteologic_homepagewidget_'.$name] = array(
+          '#type' => 'checkbox',
+          '#title' => $name,
+          '#default_value' => variable_get('meteologic_homepagewidget_'.$name, FALSE),
+      );
+       
+      $form['footerwidget']['meteologic_footerwidget_'.$name] = array(
+          '#type' => 'checkbox',
+          '#title' => $name,
+          '#default_value' => variable_get('meteologic_footerwidget_'.$name, FALSE),
+      );
+       
+    }
+  }
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Update Widgets')
+  );
+
+  return $form;
+}
+
+/**
+ * Submit callback.
+ * Triggers updates for the selected forecast providers.
+ *
+ * @see meteologic_update_form()
+ */
+function meteologic_widgets_form_submit($form, &$form_state) {
+
+
+  foreach ($form_state['values']['homepagewidget'] as $key => $value) {
+    
+    variable_set($key, $value);
+    
+  }
+  
+  foreach ($form_state['values']['footerwidget'] as $key => $value) {
+  
+    variable_set($key, $value);
+  
+  }
+  
+}
+
+
+
+
 
 /**
  * Form callback.
@@ -403,7 +533,7 @@ function meteologic_update_form() {
 
   $form['update'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Manula Update'),
+    '#title' => t('Manual Update'),
     '#description' => t("Here you can manually configure which feeds from which providers to update."),
     '#collapsible' => FALSE,
     '#tree' => TRUE,
@@ -425,12 +555,41 @@ function meteologic_update_form() {
           $form['update'][$feed][$provider] = array(
             '#type' => 'checkbox',
             '#title' => $provider_info['name'],
-            '#default_value' => TRUE,
+            '#default_value' => FALSE,
           );
         }
       }
     }
   }
+  /*
+   * If devel Krumo is installed then we can display the data in cache_meteologic
+   * in a nice and tidy fieldset. this is use in determining what or if the meteologic cache table 
+   * contains anything at all prior and after manual update
+   */
+  if(module_exists('devel')){
+    $form['cache_state'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Meteologic Cache'),
+        '#description' => t("Below is the current state of Meteologic cached data."),
+        '#collapsible' => FALSE,
+        '#tree' => TRUE,
+    );
+    
+    $meteologic_cache_result = db_select('cache_meteologic', 'cm')
+    ->fields('cm', array('cid', 'data'))
+    ->execute();
+    $cachedata = array();
+    foreach ($meteologic_cache_result as $meteologic_cache) {
+      $cachedata[$meteologic_cache->cid] = unserialize($meteologic_cache->data);
+    }
+    
+    $form['cache_state']['cache_data'] = array(
+         '#markup' => kpr($cachedata, TRUE),
+    );
+    
+  }
+  
+  
 
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
@@ -449,33 +608,43 @@ function meteologic_update_form() {
  */
 function meteologic_update_form_submit($form, &$form_state) {
   $feeds = array();
-
+  
+  
   foreach ($form_state['values']['update'] as $feed => $info) {
-    $feed = meteologic_feeds($feed);
-    foreach ($info as $provider => $enabled) {
-      if (!$enabled) {
-        $feed['providers'][$provider]['enabled'] = FALSE;
+    $update = array_values($info);
+    if($update[0] === 1){
+      $feed = meteologic_feeds($feed);
+      foreach ($info as $provider => $enabled) {
+        if (!$enabled) {
+          $feed['providers'][$provider]['enabled'] = FALSE;
+        }
       }
+      $feeds[] = $feed;
     }
-
-    $feeds[] = $feed;
   }
-
+  
+  $usebatch = variable_get('meteologic_usebatch', FALSE);
   // Use Batch API to update each one.
-  batch_set(array(
-    'title' => t('Updating Meteologic feeds...'),
-    'operations' => array(
-      array('meteologic_update_feeds_batch', array($feeds))
-    ),
-    'progress_message' => t('Updated @current of @total.'),
-    'error_message' => t('An error has occurred updating feed information. Please check the site logs for more information.'),
-    'finished' => 'meteologic_update_feeds_batch_finished',
-  ));
-
-  if (variable_get('meteologic_dev', TRUE)) {
-    watchdog('meteologic', 'Starting batch forecast update', array(), WATCHDOG_INFO);
+  if($usebatch){
+    batch_set(array(
+      'title' => t('Updating Meteologic feeds...'),
+      'operations' => array(
+        array('meteologic_update_feeds_batch', array($feeds))
+      ),
+      'progress_message' => t('Updated @current of @total.'),
+      'error_message' => t('An error has occurred updating feed information. Please check the site logs for more information.'),
+      'finished' => 'meteologic_update_feeds_batch_finished',
+    ));
+  
+    if (variable_get('meteologic_dev', TRUE)) {
+      watchdog('meteologic', 'Starting batch forecast update', array(), WATCHDOG_INFO);
+    }
+  
+    // Start batch and redirect to update form when we're done.
+    batch_process('admin/config/services/meteologic/update');
+  }else{
+    meteologic_update_feeds_manual($feeds);
+    drupal_goto('admin/config/services/meteologic/update');
   }
-
-  // Start batch and redirect to update form when we're done.
-  batch_process('admin/config/services/meteologic/update');
+ 
 }

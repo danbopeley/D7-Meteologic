@@ -6,17 +6,17 @@
 
 /**
  * Form callback.
- * Display settings form for Meteologic Mesowest.
+ * Display settings form for Meteologic METAR.
  */
-function meteologic_mesowest_settings_form() {
+function meteologic_metar_settings_form() {
   $form = array();
 
     // Grab provider info.
-  $provider = meteologic_providers('mesowest');
+  $provider = meteologic_providers('metar');
 
   $form['wrapper'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Mesowest Settings'),
+    '#title' => t('METAR Settings'),
     '#collapsible' => FALSE,
   );
 
@@ -32,23 +32,23 @@ function meteologic_mesowest_settings_form() {
   // Get a list of placeholder tokens.
   $tokens = implode(', ', $provider['feeds']['current']['tokens']);
   
-  $form['wrapper']['current']['meteologic_mesowest_current_path'] = array(
+  $form['wrapper']['current']['meteologic_metar_current_path'] = array(
       '#title' => t('Path'),
-      '#description' => t('Alter the path for the Mesowest Conditions feed. You may use the following placeholder tokens: @tokens', array('@tokens' => $tokens)),
+      '#description' => t('Alter the path for the METAR Conditions feed. You may use the following placeholder tokens: @tokens', array('@tokens' => $tokens)),
       '#type' => 'textfield',
-      '#default_value' => variable_get_value('meteologic_mesowest_current_path'),
+      '#default_value' => variable_get_value('meteologic_metar_current_path'),
       '#size' => 120,
       '#required' => TRUE,
   );
   
   $stations = call_user_func($provider['feeds']['current']['stations']);
   
-  $form['wrapper']['current']['meteologic_mesowest_current_station'] = array(
+  $form['wrapper']['current']['meteologic_metar_current_station'] = array(
       '#title' => t('Station'),
       '#description' => t(''),
       '#type' => 'select',
       '#options' => $stations,
-      '#default_value' => variable_get_value('meteologic_mesowest_current_station'),
+      '#default_value' => variable_get_value('meteologic_metar_current_station'),
   );
 
   return system_settings_form($form);

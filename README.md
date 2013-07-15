@@ -16,4 +16,4 @@ The idea is that this module will handle all of the heavy lifting and that submo
 
 ## History
 
-Started off as a port of the "NOAA Weather" module, by Dan Bopely et al.
+Started off as a port of the "NOAA Weather" module, by Dan the Weather man.

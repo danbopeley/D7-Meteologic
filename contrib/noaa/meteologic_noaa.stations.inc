@@ -12,7 +12,7 @@
  */
 function _meteologic_noaa_stations_weather() {
   return array(
-    'INIT' => t('Select A Station'),
+    '-' => t('Select a Station'),
     'PADK' => t('AK - Adak Island, Adak Airport'),
     'PAFM' => t('AK - Ambler, Ambler Airport'),
     'PAKP' => t('AK - Anaktuvuk Pass, Anaktuvuk Pass Airport'),
@@ -1821,7 +1821,6 @@ function _meteologic_noaa_stations_weather() {
  */
 function _meteologic_noaa_stations_radar() {
   return array(
-    'ns' => 'Please Select a Radar Station',
     'Alabama' => array(
       'bmx' => 'Birmingham',
       'mxx' => 'E. Alabama',

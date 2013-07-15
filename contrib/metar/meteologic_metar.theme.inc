@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Meteologic MesoWest theme functions.
+ * Meteologic METAR theme functions.
  *
  * NOTE: These theme functions *must* live in this file, named exactly like this.
  * We enforce convention over configuration in order to make things simpler
@@ -12,7 +12,7 @@
 /**
  * Provides a theme for them MesoWest Current Conditions feed.
  */
-function theme_meteologic_mesowest_current($variables) {
+function theme_meteologic_metar_current($variables) {
   $data = $variables['data'];
 
   $rows = array();

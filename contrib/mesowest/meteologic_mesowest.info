@@ -6,4 +6,4 @@ dependencies[] = meteologic
 
 ; Left intentionally for development.
 core = 7.x
-project = foo
+project = meteologic_mesowest

@@ -1,0 +1,85 @@
+.block-meteologic{
+	margin-bottom:20px;
+}
+
+.block-meteologic .block-inner{
+  margin:10px;
+}
+
+
+/*default current block styles*/
+#current-wrapper #current-conditions{
+	width:30%;
+	display:inline-block;
+	vertical-align:top;
+}
+
+.responsive-layout-mobile #current-wrapper #current-conditions,
+.responsive-layout-mobile #current-wrapper #current-data{
+  font-size:.9em;
+  line-height:1.3em;
+}
+
+#current-wrapper #current-conditions #current-image{
+  width:30%;
+  display:inline-block;
+  vertical-align:top;
+}
+
+#current-wrapper #current-conditions #current-image img{
+  width:95%;
+  height:auto;
+}
+
+#current-wrapper #current-conditions #current-temp{
+	margin-top:.25em;
+  display:inline-block;
+  width:70%;
+  font-size:1em;
+}
+
+
+#current-wrapper #current-conditions #current-temp .temp{
+  font-size:1.1em;
+  font-weight:bolder;
+}
+
+#current-wrapper #current-data{
+	margin-top:.25em;
+	width:70%;
+	display:inline-block;
+	vertical-align:top;
+}
+
+#current-wrapper #current-data .current-data-item{
+	margin-left:.2em;
+}
+
+#current-wrapper #current-data .current-data-item label{
+  width:30%;
+  display:inline-block;
+  vertical-align:top;
+}
+
+#current-wrapper #current-data .current-data-item div{
+  display:inline-block;
+  width:70%;
+}
+
+/*default forecast block styles*/
+.meteologic-forecast-wrapper .meteologic-forecastday{
+	width:24%;
+	display:inline-block;
+}
+
+.meteologic-forecast-wrapper .meteologic-forecastday div{ 
+  text-align:center;
+}
+
+.meteologic-forecast-wrapper .meteologic-forecastday .temp-hi{ 
+  color:#F9CE29;
+}
+.meteologic-forecast-wrapper .meteologic-forecastday .temp-lo{ 
+  color:#4C74A5;
+}
+

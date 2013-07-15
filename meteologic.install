@@ -3,18 +3,32 @@
  * @file
  * Meteologic installation hooks.
  */
+function meteologic_schema() {
+  $schema['cache_meteologic'] = drupal_get_schema_unprocessed('system', 'cache');
+  return $schema;
+}
+
+function meteologic_install() {
+  drupal_install_schema('meteologic');
+}
 
 /**
  * Implements hook_uninstall().
  */
 function meteologic_uninstall() {
+  
+  drupal_uninstall_schema('meteologic');
+  
   $result = db_select('variable', 'v')
     ->fields('v', array('name'))
-    ->condition('name', 'meteologic_%', '=')
+    ->condition('name', 'meteologic_%', 'LIKE')
     ->execute();
-
 
   foreach ($result as $row) {
     variable_del($row->name);
   }
+}
+
+function meteologic_update_7001() {
+  drupal_install_schema('meteologic');
 }

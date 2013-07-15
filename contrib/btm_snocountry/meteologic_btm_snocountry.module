@@ -1,0 +1,121 @@
+<?php
+/**
+ * @file
+ * Meteologic btm_snocountryground module.
+ */
+
+
+/**
+ * Implements hook_meteologic_provider_info();
+ */
+function meteologic_btm_snocountry_meteologic_provider_info() {
+  /*
+   * btm_snocountryground allows for multiple locations pulled from a text field
+   * input where [location name]::[location data] are entered on a single 
+   * line. We explode here on newline char \n to create an $locations_array of 
+   * [location name]::[location data] strings to pass in locations in the provider info
+   */
+  $locations = variable_get_value('meteologic_btm_snocountry_snow_query');
+  $locations_array = explode("\n",trim($locations));
+
+  return array(
+    'btm_snocountry' => array(
+      'name' => t('BTM Snocountry'),
+      'settings' => 'meteologic_btm_snocountry_settings_form',
+      'locations' => $locations_array,
+      'feeds' => array(
+        'snow' => array(
+          'path' => 'ski.bluetent.com/snocountry-hub/get-report/@query/@days/xml',
+          'tokens' => array('@query','@days'),
+          'theme' => 'meteologic_btm_snocountry',
+        ),
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_variable_info().
+ *
+ */
+function meteologic_btm_snocountry_variable_info() {
+  $variables = array();
+  //define path for sno country feed
+  $variables['meteologic_btm_snocountry_path'] = array(
+      'title' => t('Sno Country Feed Path'),
+      'default' => 'ski.bluetent.com/snocountry-hub/get-report/@query/@days/xml',
+      'group' => 'meteologic_sno_country',
+      'token' => TRUE,
+  );
+
+  return $variables;
+}
+
+/**
+ * @name meteologic_btm_snocountry_get_trailmap()
+ * Get trial map(s) for configured resorts
+ */
+function meteologic_btm_snocountry_get_trailmap($path) {
+
+  /*
+   * if called from batch during meteologic_get_data only the feed path is passed
+  * so grab radar station from the cache if it exists
+  * otherwise this has been called from meteologic_noaa_get_radar_overlays() which
+  * passes both path and radar_station during seeting of radar station in noaa settings
+ */
+drupal_set_message('radarpath: '.$path , $type = 'status', $repeat = TRUE);
+
+  $apikey = variable_get_value('meteologic_btm_snocountry_apikey', NULL);
+  $clat = variable_get_value('meteologic_btm_snocountry_radar_clat', NULL);
+  $clon = variable_get_value('meteologic_btm_snocountry_radar_clon', NULL);
+  $height = variable_get_value('meteologic_btm_snocountry_radar_height', NULL);
+  $width = variable_get_value('meteologic_btm_snocountry_radar_width', NULL);
+  $radius = variable_get_value('meteologic_btm_snocountry_radar_radius', NULL);
+  
+  $update_success = array();
+  $update_fail = array();
+
+  //upload current radar picture
+  $find = array('clat','clon');
+  $replace = array('centerlat','centerlon');
+  
+  $remote_radar_url = str_replace($find, $replace, $path);
+  $current_radar_upload = file_get_contents($remote_radar_url); // string
+  
+  $current_radar_uploaded_success = TRUE;
+  if($current_radar_upload === false){
+    
+    drupal_set_message('radarupload: fail '.$remote_radar_url , $type = 'status', $repeat = TRUE);
+    $current_radar_uploaded_success = FALSE;
+    $update_fail[] = $remote_radar_url;
+  }else{
+    
+   // $btm_snocountry_radar_directory = variable_get('file_public_path', conf_path() . '/files').'/meteologic/btm_snocountry/radar';
+    
+    $btm_snocountry_radar_directory = 'public://meteologic/btm_snocountry/radar';    
+    $radardircreated = file_prepare_directory( $btm_snocountry_radar_directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS );
+    
+    if($radardircreated){
+      drupal_set_message('radarupload directory exist or created:'. $btm_snocountry_radar_directory, $type = 'status', $repeat = TRUE);
+    }else{
+      drupal_set_message('radarupload directory failed to exist or created:'. $btm_snocountry_radar_directory, $type = 'status', $repeat = TRUE);
+    }
+    drupal_set_message('radarupload success '.$remote_radar_url , $type = 'status', $repeat = TRUE);
+    $dest = file_default_scheme() . '://meteologic/btm_snocountry/radar/current_radar.gif';
+    $uploadedimage = file_save_data($current_radar_upload, $dest, FILE_EXISTS_REPLACE);
+    $update_success[] = $remote_radar_url;
+  }
+
+  //if in dev lets track succes and failure of image uploads
+  if (variable_get('meteologic_dev', TRUE)) {
+    $success = implode(' :: ',$update_success);
+    $fail = implode(' :: ',$update_fail);
+    watchdog('meteologic-btm_snocountry-radar', 'The following radar images where updated successfully: %success <br /> The following radar images where update failed : %fail', array(
+        '%success' => $success,
+        '%fail' => $fail,
+    ), WATCHDOG_INFO);
+  }
+
+  return true;
+}
+
