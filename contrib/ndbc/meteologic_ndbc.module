@@ -1,0 +1,121 @@
+<?php
+/**
+ * @file
+ * Meteologic Mesowest module.
+ */
+
+
+/**
+ * Implements hook_meteologic_provider_info();
+ */
+function meteologic_ndbc_meteologic_provider_info() {
+  return array(
+    'ndbc' => array(
+      'name' => t('NDBC'),
+      'settings' => 'meteologic_ndbc_settings_form',
+      'feeds' => array(
+        'tidal' => array(
+          'path' => variable_get_value('meteologic_ndbc_obs_path'),
+          'tokens' => array('@station'),
+          'theme' => 'meteologic_ndbc_bouy_obs',
+          'stations' => 'meteologic_ndbc_bouy_stations',
+          'custom_preprocess' => 'meteologic_ndbc_custom_preprocess',
+        ),
+      ),
+    ),
+  );
+}
+
+
+
+/**
+ * Returns a list of weather stations for the NOAA provider.
+ * This is a wrapper around _meteologic_noaa_stations_weather(), which allows
+ * us to lazy-load the extra big file.
+ */
+function meteologic_ndbc_bouy_stations() {
+  module_load_include('inc', 'meteologic_ndbc', 'meteologic_ndbc_stations');
+  return _meteologic_ndbc_stations_weather();
+}
+
+
+
+/**
+ * Implements hook_variable_info().
+ *
+ */
+function meteologic_ndbc_variable_info() {
+  $variables = array();
+
+  $variables['meteologic_ndbc_obs_path'] = array(
+      'title' => t('NDBC Bouy Feed Path'),
+      'default' => 'http://www.ndbc.noaa.gov/data/latest_obs/@station.rss',
+      'group' => 'meteologic_ndbc',
+      'token' => TRUE,
+  );
+
+  $variables['meteologic_ndbc_tidal_station'] = array(
+      'title' => t('NDBC Bouy Station ID'),
+      'default' => '51004',
+      'group' => 'meteologic_ndbc',
+      'token' => TRUE,
+  );
+
+  return $variables;
+}
+/**
+ * Preprocess callback.
+ *
+ * @see btm_blog_theme()
+ */
+/**
+ * Custom preprocess
+ * @see meteologic_ndbc_meteologic_provider_info()
+ * 
+ * Modifie feed data after feed xml has been 
+ * processed through json into array but before 
+ * data is saved into cache
+ * @see ../meteologic.module:meteologic_get_data()
+ */
+function meteologic_ndbc_custom_preprocess($data) {
+  
+  //we mostly want to save the goodies in description str 
+  if($data['channel']['item']['description']){
+    
+    
+    $obs_string = $data['channel']['item']['description'];
+    
+    // get rid of the <strong> tags
+    $remove = array('<strong>','</strong>');
+    $obs_string = str_replace($remove,'', $obs_string);
+    //blast the resulting string into an array on the <br />s 
+    $obs_array = explode('<br />', $obs_string );
+  }else{ //couldnt find description but set it anyways
+    $obs_array = array('na');
+  }
+  
+  //through in the pubDate
+  if($data['channel']['item']['pubDate']){
+    $pubDate = $data['channel']['item']['pubDate'];
+  }else{
+    $pubDate = 'na';
+  }
+  
+  //through in the title
+  if($data['channel']['item']['title']){
+    $station = $data['channel']['item']['title'];
+  }else{
+    $station = 'na';
+  }
+  
+  //throw it all into a nice looking array and... 
+  $processed_data = array(
+      'station' => $station,
+      'pubDate' => $pubDate,
+      'link' => $station,
+      'guid' => $station,
+      'obs' => $obs_array,
+      );
+  //return it to from whence it came ../meteologic.module:meteologic_get_data()
+  return $processed_data;
+}

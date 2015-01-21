@@ -1,0 +1,20 @@
+<?php
+/**
+ * @file
+ * Meteologic NOAA installation hooks.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function meteologic_mesowest_uninstall() {
+  $result = db_select('variable', 'v')
+    ->fields('v', array('name'))
+    ->condition('name', 'meteologic_mesowest_%', '=')
+    ->execute();
+
+
+  foreach ($result as $row) {
+    variable_del($row->name);
+  }
+}

@@ -1,8 +1,0 @@
-name            = meteologic_noaa_current
-description     = IMplements NOAA Weahter Current conditions 
-version         = 7.x-1.0-alpha
-package         = Meteologic
-core            = 7.x
-
-
-

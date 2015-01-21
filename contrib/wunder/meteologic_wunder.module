@@ -1,0 +1,222 @@
+<?php
+/**
+ * @file
+ * Meteologic Wunderground module.
+ */
+
+
+/**
+ * Implements hook_meteologic_provider_info();
+ */
+function meteologic_wunder_meteologic_provider_info() {
+  /*
+   * wunderground allows for multiple locations pulled from a text field
+   * input where [location name]::[location data] are entered on a single 
+   * line. We explode here on newline char \n to create an $locations_array of 
+   * [location name]::[location data] strings to pass in locations in the provider info
+   */
+  $locations = variable_get_value('meteologic_wunder_query');
+  $locations_array = explode("\n",trim($locations));
+
+  return array(
+    'wunder' => array(
+      'name' => t('Wunderground'),
+      'settings' => 'meteologic_wunder_settings_form',
+      'locations' => $locations_array,
+      'feeds' => array(
+        'current' => array(
+          'path' => variable_get_value('meteologic_wunder_current_path'),
+          'tokens' => array('@apikey','@query'),
+          'theme' => 'meteologic_wunder_current',
+        ),
+        'forecast' => array(
+            'path' => variable_get_value('meteologic_wunder_forecast_path'),
+            'tokens' => array('@apikey','@query'),
+            'theme' => 'meteologic_wunder_forecast',
+        ),
+        'tidal' => array(
+            'path' => variable_get_value('meteologic_wunder_tidal_path'),
+            'tokens' => array('@apikey','@query'),
+            'theme' => 'meteologic_wunder_tidal',
+        ),
+        'radar' => array(
+            'path' => variable_get_value('meteologic_wunder_radar_path'),
+            'tokens' => array('@apikey','@clat','@clon','@radius','@height','@width'),
+            'theme' => 'meteologic_wunder_radar',
+            'custom_process' => 'meteologic_wunder_get_radar',
+        ),
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_variable_info().
+ *
+ */
+function meteologic_wunder_variable_info() {
+  $variables = array();
+ /*
+  * DEV Note: wunderground API provides an extensive amount of variations to form a request
+  * to thier API. At this time the only 'features' we are importing ar conditions(current conditions)
+  * and forecast, hence for either feed the feature is hardcoded into the URL. 
+  * the pws:1 setting forces the request to use closest person weather station. The Last token @query
+  * is intended to use lat,lon values as detailed in the admin, but there are many other options available.
+  * please see the wunderground API documentation here: http://www.wunderground.com/weather/api/d/docs?d=index
+  */
+  //http://api.wunderground.com/api/@apikey/@features/@settings/q/@query.@format
+  //http://api.wunderground.com/api/7809932568edbb63/geolookup/conditions/q/IA/Cedar_Rapids.json
+  
+  //define path for current conditinos
+  $variables['meteologic_wunder_current_path'] = array(
+      'title' => t('Wunderground Conditions Feed Path'),
+      'default' => 'http://api.wunderground.com/api/@apikey/conditions/pws:1/q/@query.xml',
+      'group' => 'meteologic_wunder',
+      'token' => TRUE,
+  );
+  
+  //define path of forecast
+  $variables['meteologic_wunder_forecast_path'] = array(
+      'title' => t('Wunderground Forecast Feed Path'),
+      'default' => 'http://api.wunderground.com/api/@apikey/forecast/pws:1/q/@query.xml',
+      'group' => 'meteologic_wunder',
+      'token' => TRUE,
+  );
+  //define path of forecast
+  $variables['meteologic_wunder_tidal_path'] = array(
+      'title' => t('Wunderground Tidal Feed Path'),
+      'default' => 'http://api.wunderground.com/api/@apikey/tide/q/@query.xml',
+      'group' => 'meteologic_wunder',
+      'token' => TRUE,
+  );
+  
+  //define path of forecast
+  $variables['meteologic_wunder_radar_path'] = array(
+      'title' => t('Wunderground Radar Picture Path'),
+      'default' => 'http://api.wunderground.com/api/@apikey/radar/image.gif?clat=@clat&clon=@clon&radius=@radius&width=@width&height=@height&newmaps=1',
+      'group' => 'meteologic_wunder',
+      'token' => TRUE,
+  );
+  
+//can prolly get rid of this
+  $variables['meteologic_wunder_locations'] = array(
+      'title' => t('Wunderground Conditions Feed Station'),
+      'default' => 5,
+      'group' => 'meteologic_wunder',
+      'token' => TRUE,
+  );
+
+  return $variables;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function meteologic_wunder_block_info() {
+  $info = array();
+  $info["meteologic_wunder_logo"] = array(
+      'info' => t('Meteologic : Wunder Logo'),
+      'cache' => DRUPAL_CACHE_GLOBAL,
+  );
+  $info["meteologic_wunder_homewidget"] = array(
+      'info' => t('Meteologic : Wunder Homepage Widget'),
+      'cache' => DRUPAL_CACHE_GLOBAL,
+  );
+  return $info;
+}
+
+function meteologic_wunder_block_view($delta = '') {
+  $block = array();
+  if($delta == 'meteologic_wunder_logo'){
+    $logo_path = drupal_get_path('module', 'meteologic_wunder').'/logos/wundergroundLogo_blue_horz.png';
+    $block['subject'] = 'Wunderground Logo';
+    $block['content'] = '<div class="meteologic-wunder-logo"><img src="'.$logo_path.'"></div>';
+  }
+  
+  
+  if($delta == 'meteologic_wunder_homewidget'){
+    $logo_path = drupal_get_path('module', 'meteologic_wunder').'/logos/wundergroundLogo_blue_horz.png';
+    $block['subject'] = 'Wunderground Home Wiget';
+    $block['content'] = '<div class="meteologic-wunder-home">preprocess me</div><div class="meteologic-wunder-logo"><img src="'.$logo_path.'"></div>';
+  }
+  
+  
+  return $block;
+}
+
+/**
+ * @name meteologic_wunder_get_radar()
+ * Get The Current radar image and legend for a radar station
+ *
+ * This is a custom process defined in the meteologic wunder radar provider
+ *
+ *
+ */
+function meteologic_wunder_get_radar($path) {
+
+  $wunder_radar_directory = 'public://meteologic/wunder/radar';
+
+  /*Added routine to ensure that radar picture is updated max freq of an hour
+  The radar pic is a managed file we can grab the timestamp when it was last
+  updated and determine whether to update again or not
+  */
+  $now = time();
+  $radar_timestamp = db_select("file_managed", "fm")
+  ->fields("fm", array("timestamp"))
+  ->condition("filename", "current_radar.gif")
+  ->execute()
+  ->fetchField();
+  $dif = $now - $radar_timestamp;
+
+  if($dif < 3600){ //if current radar pic is less than an hour old do not update
+    return true;
+  }
+
+  
+  $apikey = variable_get_value('meteologic_wunder_apikey', NULL);
+  $clat = variable_get_value('meteologic_wunder_radar_clat', NULL);
+  $clon = variable_get_value('meteologic_wunder_radar_clon', NULL);
+  $height = variable_get_value('meteologic_wunder_radar_height', NULL);
+  $width = variable_get_value('meteologic_wunder_radar_width', NULL);
+  $radius = variable_get_value('meteologic_wunder_radar_radius', NULL);
+  
+
+  $update_success = array();
+  $update_fail = array();
+
+  //upload current radar picture
+  $find = array('clat','clon');
+  $replace = array('centerlat','centerlon');
+  
+  $remote_radar_url = str_replace($find, $replace, $path);
+  $current_radar_upload = file_get_contents($remote_radar_url); // string
+  $current_radar_uploaded_success = TRUE;
+
+  if($current_radar_upload === false){
+    $current_radar_uploaded_success = FALSE;
+    $update_fail[] = $remote_radar_url;
+  }else{
+    $radardircreated = file_prepare_directory( $wunder_radar_directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS );
+    
+    if($radardircreated){
+      $dest = file_default_scheme() . '://meteologic/wunder/radar/current_radar.gif';
+      $uploadedimage = file_save_data($current_radar_upload, $dest, FILE_EXISTS_REPLACE);
+      $update_success[] = $remote_radar_url;
+    }else{
+      $update_fail[] = $remote_radar_url;
+    }
+  }
+
+  //if in dev lets track succes and failure of image uploads
+  if (variable_get('meteologic_dev', TRUE)) {
+    $success = implode(' :: ',$update_success);
+    $fail = implode(' :: ',$update_fail);
+    watchdog('meteologic-wunder-radar', 'The following radar images where updated successfully: %success <br /> The following radar images where update failed : %fail', array(
+        '%success' => $success,
+        '%fail' => $fail,
+    ), WATCHDOG_INFO);
+  }
+
+  return true;
+}
+

@@ -1,0 +1,9 @@
+name = Meteologic Wunderground
+description = Provides Meteologic integration for the Wunderground provider.
+package = Weather
+version = 7.x-1.2-dev
+dependencies[] = meteologic
+
+; Left intentionally for development.
+core = 7.x
+project = meteologic_wunder

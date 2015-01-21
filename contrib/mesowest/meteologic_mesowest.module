@@ -1,0 +1,64 @@
+<?php
+/**
+ * @file
+ * Meteologic Mesowest module.
+ */
+
+
+/**
+ * Implements hook_meteologic_provider_info();
+ */
+function meteologic_mesowest_meteologic_provider_info() {
+  return array(
+    'mesowest' => array(
+      'name' => t('Mesowest'),
+      'settings' => 'meteologic_mesowest_settings_form',
+      'feeds' => array(
+        'current' => array(
+          'path' => variable_get_value('meteologic_mesowest_current_path'),
+          'tokens' => array('@station'),
+          'theme' => 'meteologic_mesowest_current',
+          'stations' => 'meteologic_mesowest_stations',
+        ),
+      ),
+    ),
+  );
+}
+
+
+
+/**
+ * Returns a list of weather stations for the Mesowest provider.
+ * This is a wrapper around _meteologic_noaa_stations_weather(), which allows
+ * us to lazy-load the extra big file.
+ */
+function meteologic_mesowest_stations() {
+  module_load_include('inc', 'meteologic_mesowest', 'meteologic_mesowest_stations');
+  return _meteologic_mesowest_stations_weather();
+}
+
+
+
+/**
+ * Implements hook_variable_info().
+ *
+ */
+function meteologic_mesowest_variable_info() {
+  $variables = array();
+
+  $variables['meteologic_mesowest_current_path'] = array(
+      'title' => t('Mesowest Conditions Feed Path'),
+      'default' => 'http://mesowest.utah.edu/cgi-bin/droman/xml_get_monitor_data_dev.cgi?stn=@station&searchtype=mostrecent&currentorpast=current',
+      'group' => 'meteologic_mesowest',
+      'token' => TRUE,
+  );
+
+  $variables['meteologic_mesowest_current_station'] = array(
+      'title' => t('Mesowest Conditions Feed Station'),
+      'default' => 'KASE',
+      'group' => 'meteologic_mesowest',
+      'token' => TRUE,
+  );
+
+  return $variables;
+}
