@@ -1,0 +1,260 @@
+<?php
+/**
+ * @file
+ * Meteologic NOAA module.
+ */
+
+
+define("NOAA_MODULE_PATH", drupal_get_path( 'module', 'meteologic_noaa' ));
+define("NOAA_CURRENT_BASE_URL", 'http://w1.weather.gov/xml/current_obs/');
+define ('NOAA_FORECAST_BASE_URL', 'http://graphical.weather.gov/xml/SOAP_server/ndfdSOAPclientByDay.php');
+//'http://graphical.weather.gov/xml/SOAP_server/ndfdSOAPclientByDay.php?lat=$lat&lon=$lon&format=12+hourly&startDate=&numDays=$days&Submit=Submit";
+
+//Module Include Files.
+include_once( NOAA_MODULE_PATH. '/meteologic_noaa_stations.inc' );
+
+/**
+ * Implements hook_meteologic_provider_info();
+ */
+function meteologic_noaa_meteologic_provider_info() {
+  return array(
+    'noaa' => array(
+      'name' => t('NOAA'),
+      'settings' => 'meteologic_noaa_settings_form',
+      'feeds' => array(
+        'current' => array(
+          'path' => variable_get_value('meteologic_noaa_current_path'),
+          'tokens' => array('@station'),
+          'theme' => 'meteologic_noaa_current',
+          'stations' => 'meteologic_noaa_stations_weather',
+        ),
+        'forecast' => array(
+          'path' => variable_get_value('meteologic_noaa_forecast_path'),
+          'tokens' => array('@lat', '@lon', '@days'),
+          'theme' => 'meteologic_noaa_forecast',
+          'stations' => 'meteologic_noaa_stations_weather',
+        ),
+        'radar' => array(
+            'path' => variable_get_value('meteologic_noaa_radar_path'),
+            'tokens' => array('@radarstation'),
+            'theme' => 'meteologic_noaa_radar',
+            'stations' => 'meteologic_noaa_stations_radar',
+            'custom_process' => 'meteologic_noaa_get_radar',
+        ),
+      ),
+    ),
+  );
+}
+
+
+/**
+ * Returns a list of weather stations for the NOAA provider.
+ * This is a wrapper around _meteologic_noaa_stations_weather(), which allows
+ * us to lazy-load the extra big file.
+ */
+function meteologic_noaa_stations_weather() {
+  module_load_include('inc', 'meteologic_noaa', 'meteologic_noaa_stations');
+  return _meteologic_noaa_stations_weather();
+}
+
+/**
+ * Returns a list of radar stations for the NOAA provider.
+ * This is a wrapper around _meteologic_noaa_stations_radar(), which allows
+ * us to lazy-load the extra big file.
+ */
+function meteologic_noaa_stations_radar() {
+  module_load_include('inc', 'meteologic_noaa', 'meteologic_noaa_stations');
+  return _meteologic_noaa_stations_radar();
+}
+
+
+function meteologic_noaa_get_radar_overlays($radar_station) {
+  $radar_station = strtoupper($radar_station);
+  $path = variable_get_value('meteologic_noaa_radar_path');
+  //This is an array of radar overlays to be created http://radar.weather.gov/ridge/
+  $radar_overlays_array = array(
+      'Topo_Short.jpg'    => $path.'Overlays/Topo/Short/radarstation_Topo_Short.jpg',
+      'County_Short.gif'  => $path.'Overlays/County/Short/radarstation_County_Short.gif',
+      'Rivers_Short.gif'  => $path.'Overlays/Rivers/Short/radarstation_Rivers_Short.gif',
+      'Highways_Short.gif'=> $path.'Overlays/Highways/Short/radarstation_Highways_Short.gif',
+      'City_Short.gif'    => $path.'Overlays/Cities/Short/radarstation_City_Short.gif',
+  );
+  //Make a directory name
+  $noaa_radar_directory = variable_get('file_public_path', conf_path() . '/files').'/meteologic/noaa/radar/'.$radar_station;
+  $radardircreated = file_prepare_directory( $noaa_radar_directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS );
+  //Save the radar arrays as images
+  if($radardircreated){
+    $overlayUploadSuccess = TRUE;
+  foreach ($radar_overlays_array as $key => $value) {
+
+    $overlayURL   = str_replace('radarstation', $radar_station, $value);
+    $ovarlayUpload = file_get_contents($overlayURL); // string
+    
+    if($ovarlayUpload === false){
+      $overlayUploadSuccess = FALSE;
+    }else{
+      $dest = file_default_scheme() . '://meteologic/noaa/radar/'.$radar_station.'/'.$key;
+      $uploadedimage = file_save_data($ovarlayUpload, $dest, FILE_EXISTS_REPLACE);
+    }
+
+  }
+  
+  if($overlayUploadSuccess == TRUE){
+    $current_radar_uploaded = meteologic_noaa_get_radar($path, $radar_station);
+  }
+
+  //save the radarstation to 
+  $cache_key = "meteologic_result_radar_noaa";
+  
+  $radar_station_array[] = $radar_station;
+  
+  cache_set($cache_key, $radar_station_array, 'cache', CACHE_PERMANENT);
+ // $results[$feed][$provider] = $array;
+  
+  
+  }else{
+    dsm('error creating radar image directory');
+  }
+  return TRUE;
+}
+
+/**
+ * @name meteologic_noaa_get_radar()
+ * Get The Current radar image and legend for a radar station
+ * 
+ * This is a custom process defined in the noaa radar provider 
+ * 
+ * 
+ */
+function meteologic_noaa_get_radar($path, $radar_station = NULL) {
+  
+/*
+ * if called from batch during meteologic_get_data only the feed path is passed
+ * so grab radar station from the cache if it exists
+ * otherwise this has been called from meteologic_noaa_get_radar_overlays() which
+ * passes both path and radar_station during seeting of radar station in noaa settings
+*/  
+  
+  
+  if(!$radar_station){
+    $radar_station = variable_get_value('meteologic_noaa_radar_station', NULL);
+  }
+  
+  $radar_station = strtoupper($radar_station);
+  //$radar_station = 'HMO';
+  $update_success = array();
+  $update_fail = array();
+  
+  //upload current radar picture
+  $remote_radar_url = $path.'RadarImg/N0R/'.$radar_station.'_N0R_0.gif';
+  $current_radar_upload = file_get_contents($remote_radar_url); // string
+  $current_radar_uploaded_success = TRUE;
+  if($current_radar_upload === false){
+    $current_radar_uploaded_success = FALSE;
+    $update_fail[] = $remote_radar_url;
+  }else{
+    $dest = file_default_scheme() . '://meteologic/noaa/radar/'.$radar_station.'/current_radar.gif';
+    $uploadedimage = file_save_data($current_radar_upload, $dest, FILE_EXISTS_REPLACE);
+    $update_success[] = $remote_radar_url;
+  }
+ 
+  
+ //upload legend overlay
+ $remote_legend_url  = $path.'Legend/N0R/'.$radar_station.'_N0R_Legend_0.gif';
+  $current_legend_upload = file_get_contents($remote_legend_url); // string
+  $current_legend_uploaded_success = TRUE;
+  if($current_legend_upload === false){
+    $current_legend_uploaded_success = FALSE;
+    $update_fail[] = $remote_legend_url;
+  }else{
+    $dest = file_default_scheme() . '://meteologic/noaa/radar/'.$radar_station.'/current_legend.gif';
+    $uploadedimage = file_save_data($current_legend_upload, $dest, FILE_EXISTS_REPLACE);
+    $update_success[] = $remote_legend_url;
+  }
+  
+  //upload warnings overlay
+  $remote_warnings_url  = $path.'Warnings/Short/'.$radar_station.'_Warnings_0.gif';
+  $current_warnings_upload = file_get_contents($remote_warnings_url); // string
+  $current_warnings_uploaded_success = TRUE;
+  if($current_warnings_upload === false){
+    $current_warnings_uploaded_success = FALSE;
+    $update_fail[] = $remote_warnings_url;
+  }else{
+    $dest = file_default_scheme() . '://meteologic/noaa/radar/'.$radar_station.'/current_warnings.gif';
+    $uploadedimage = file_save_data($current_warnings_upload, $dest, FILE_EXISTS_REPLACE);
+    $update_success[] = $remote_warnings_url;
+  }
+  
+  //if in dev lets track succes and failure of image uploads
+  if (variable_get('meteologic_dev', TRUE)) {
+    $success = implode(' :: ',$update_success);
+    $fail = implode(' :: ',$update_fail);
+    watchdog('meteologic-noaa-radar', 'The following radar images where updated successfully: %success <br /> The following radar images where update failed : %fail', array(
+        '%success' => $success,
+        '%fail' => $fail,
+    ), WATCHDOG_INFO);
+  }
+  
+  return true;
+}
+
+
+/**
+ * Implements hook_variable_info().
+ * 
+ */
+function meteologic_noaa_variable_info() {
+  $variables = array();
+
+  $variables['meteologic_noaa_current_path'] = array(
+    'title' => t('NOAA Current conditions feed path'),
+    'default' => 'http://w1.weather.gov/xml/current_obs/@station.xml',
+    'group' => 'meteologic_noaa',
+    'token' => TRUE,
+  );
+
+  $variables['meteologic_noaa_current_station'] = array(
+    'title' => t('NOAA Current conditions feed station'),
+    'default' => 'KASE',
+    'group' => 'meteologic_noaa',
+    'token' => TRUE,
+  );
+
+  $variables['meteologic_noaa_forecast_path'] = array(
+    'title' => t('NOAA Point forecast feed path'),
+    'default' => 'http://graphical.weather.gov/xml/SOAP_server/ndfdSOAPclientByDay.php?lat=@lat&lon=@lon&format=12+hourly&startDate=&numDays=@days&Submit=Submit',
+    'group' => 'meteologic_noaa',
+    'token' => TRUE,
+  );
+
+  $variables['meteologic_noaa_forecast_lat'] = array(
+    'title' => t('NOAA Point forecast feed latitude'),
+    'default' => 39.22583,
+    'group' => 'meteologic_noaa',
+    'token' => TRUE,
+  );
+
+  $variables['meteologic_noaa_forecast_lon'] = array(
+    'title' => t('NOAA Point forecast feed longitude'),
+    'default' => -106.86837,
+    'group' => 'meteologic_noaa',
+    'token' => TRUE,
+  );
+
+  $variables['meteologic_noaa_forecast_days'] = array(
+    'title' => t('NOAA Point forecast feed days'),
+    'default' => 3,
+    'group' => 'meteologic_noaa',
+    'token' => TRUE,
+  );
+  
+  $variables['meteologic_noaa_radar_path'] = array(
+      'title' => t('NOAA Radar Picture download path'),
+      'default' => 'http://radar.weather.gov/ridge/',
+      'group' => 'meteologic_noaa',
+      'token' => TRUE,
+  );
+
+  return $variables;
+}
+

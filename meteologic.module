@@ -1,76 +1,30 @@
 <?php
 /**
- * @name NOAA Weather 
- * @category weather
- * @copyright 2010 Blue Tent Marketing
- * @author Daniel Bopely <dan@bluetent.com> - Originator of this great module!
- * @author Paul T. Huntsberger <paul@bluetent.com> - Ported and expanded to Drupal 6.
- * @author Daniel Bopely <dan@bluetent.com> - Implemented minor bug fixes
- * @package NOAA Weather
- * @version 1.2-beta
- *
- * The NOAA Weather module for Drupal 6 is a port and re-write of the Drupal 5 module. This module allows the end user to have
- * a set of blocks and an admin user interface for assigning weather station information for current forecasts, extended foredcasts and radar station information.
- * 
- * @todo - this still needs a good audit and code cleanup, and eventually will be able to add multiple stations (perhaps a max limit of 5 individual stations) and
- * perhaps some ctools interface integration.
- * @todo - Add a help section.
- * @todo - Add developer documentation.
+ * @file
+ * Meteologic module.
  */
-/*
-//Global Module Definitions.
-define('METEOLOGIC_MODULE_PATH', drupal_get_path('module', 'meteologic'));
-define('METEOLOGIC_DEFAULT_IMAGE_DIRECTORY', METEOLOGIC_MODULE_PATH .'/images/default');
-define('METEOLOGIC_CUSTOM_IMAGE_DIRECTORY', METEOLOGIC_MODULE_PATH .'/images/custom');
-define('METEOLOGIC_RADAR_IMAGE_DIRECTORY', file_create_path() .'/meteologic_radar');
 
-//Internal Module Configuration.
-define ('METEOLOGIC_CACHE_TIME', 3600);
-define ('METEOLOGIC_CURRENT_URL', 'http://www.weather.gov/xml/current_obs/');
-define ('METEOLOGIC_FORECAST_URL', 'http://www.weather.gov/forecasts/xml/SOAP_server/ndfdSOAPclientByDay.php');
-define ('METEOLOGIC_SOCKET_TIMEOUT_SECONDS', 5);
-
-//End User Configuration.
-define ('METEOLOGIC_CURRENT_WEATHER_STATION_DEFAULT', variable_get('meteologic_current_weather_station_default', 'INIT'));
-define ('METEOLOGIC_CURRENT_LOCATION_NAME_DEFAULT', variable_get('meteologic_current_location_name_default', NULL));
-define ('METEOLOGIC_CURRENT_TEMP_UNIT_DEFAULT', variable_get('meteologic_current_temp_unit_default', 'f'));
-define ('METEOLOGIC_FORECAST_LAT_DEFAULT', variable_get('meteologic_forecast_lat_default', '47.53'));  
-define ('METEOLOGIC_FORECAST_LON_DEFAULT', variable_get('meteologic_forecast_lon_default', '-122.30'));
-define ('METEOLOGIC_FORECAST_DAYS_DEFAULT', variable_get('meteologic_forecast_days_default', 5));
-define ('METEOLOGIC_FORECAST_DAYSPAN_DEFAULT', variable_get('meteologic_forecast_dayspan_default', 12));
-define ('METEOLOGIC_FORECAST_TEMP_UNIT_DEFAULT', variable_get('meteologic_forecast_temp_unit_default', 'f'));
-define ('METEOLOGIC_RADAR_STATION_DEFAULT', variable_get('meteologic_radar_station_default', 'INIT'));
-define ('METEOLOGIC_RADAR_PICTURE_WIDTH_DEFAULT', variable_get('meteologic_radar_picture_width_default', 600));
-define ('METEOLOGIC_RADAR_PICTURE_HEIGHT_DEFAULT', variable_get('meteologic_radar_picture_height_default', 550));
-
-//mesowest
-define ('METEOLOGIC_MESOWEST_STATION_DEFAULT', variable_get('meteologic_mesowest_station_default', 'INIT'));
-*/
 /**
- * Implementation of hook_init().
-
-function meteologic_init() {
-  //Module Include Files when the module initializes.
-  //Admin Files
-  include_once(METEOLOGIC_MODULE_PATH .'/includes/admin.noaa.inc');
-  //Include the various stations here, so we can have ano object to play with
-  include_once(METEOLOGIC_MODULE_PATH .'/includes/stations.inc');
-  //Include defalt icons array, so we can have multiple arrays here
-  include_once(METEOLOGIC_MODULE_PATH .'/includes/icons.inc');
-  //Include module functions
-  include_once(METEOLOGIC_MODULE_PATH .'/includes/noaa.inc');
-  //Include theme files
-  include_once(METEOLOGIC_MODULE_PATH .'/theme/theme.noaa.inc');
-  //Add in jquery js
-  drupal_add_js(METEOLOGIC_MODULE_PATH .'/js/jquery.functions.js' ,'module', 'header' );
-  //Add CSS files
-  drupal_add_css(METEOLOGIC_MODULE_PATH .'/css/noaa-weather-styles.css', 'module', 'all');
-  //Check Install
-  if (arg(0) == 'admin') {
-    _meteologic_check_install();
+ * Implements hook_help().
+ */
+function meteologic_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#meteologic':
+      return t('Meteologic is primarily an API module. It provides a framework for providers to consume external feather feeds.');
+    case 'admin/config/services/meteologic':
+      return t('Here you can configure settings for your feeds, providers and general Meteologic behavior.');
+    case 'admin/config/services/meteologic/feeds':
+    case 'admin/config/services/meteologic/feeds/%':
+      return t('Here you can configure settings for your feeds, including selecting a default provider.');
+    case 'admin/config/services/meteologic/providers':
+    case 'admin/config/services/meteologic/providers/%':
+      return t('Here you can configure settings for your providers.');
+    case 'admin/config/services/meteologic/update':
+      return t('Here you can manually update all feeds. Please use this with caution!');
+    case 'admin/config/services/meteologic/summary':
+      return t('Here you can see a birds-eye view of what feeds and providers are enabled.');
   }
-} 
-*/
+}
 
 /**
  * Implements hook_permission().
@@ -79,77 +33,1212 @@ function meteologic_permission() {
   return array(
     'administer meteologic' => array(
       'title' => t('Administer Meteologic'),
+      'description' => t('Configure the meteologic module.'),
     ),
   );
 }
-/**
- * Implementation of hook_menu().
- */
-function meteologic_menu(){
-	$items['admin/config/content/meteologic'] = array(
-    'title' => 'Meteologic settings',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('meteologic_admin_settings'),
-    'access callback' => 'user_access',
-    'access arguments' => array('administer meteologic'),
-    'description' => 'Configure RAM MLS settings.',
-    'file' => 'meteologic.admin.inc',
-    'type' => MENU_NORMAL_ITEM,
-  );
-  
-	$items['admin/config/content/meteologic/configure'] = array(
-	  'title' => 'Main Meteologic Configuration',
-	  'type' => MENU_DEFAULT_LOCAL_TASK,
-	  'weight' => 10,
-	);
 
+/**
+ * Implements hook_menu().
+ */
+function meteologic_menu() {
+  $items = array();
+
+  $items['admin/config/services/meteologic'] = array(
+    'title' => 'Meteologic',
+    'description' => 'Manage weather feeds.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('meteologic_form_settings'),
+    'access arguments' => array('administer meteologic'),
+    'file' => 'meteologic.admin.inc',
+  );
+
+  $items['admin/config/services/meteologic/default'] = array(
+    'title' => 'Settings',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -50,
+  );
+
+  $items['admin/config/services/meteologic/providers'] = array(
+    'title' => 'Providers',
+    'page callback' => 'meteologic_page_providers',
+    'access arguments' => array('administer meteologic'),
+    'file' => 'meteologic.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 0,
+  );
+
+  $items['admin/config/services/meteologic/providers/default'] = array(
+    'title' => 'Home',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -50,
+  );
+
+  // Add settings forms for providers.
+  foreach (meteologic_providers() as $slug => $info) {
+    if (isset($info['settings']) && !empty($info['settings'])) {
+      $items["admin/config/services/meteologic/providers/$slug"] = array(
+        'title' => $info['name'],
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array($info['settings']),
+        'access arguments' => array('administer meteologic'),
+        'type' => MENU_LOCAL_TASK,
+        'file' => "{$info['module']}.admin.inc",
+        'file path' => drupal_get_path('module', $info['module']),
+      );
+    }
+  }
+
+  $items['admin/config/services/meteologic/feeds'] = array(
+    'title' => 'Feeds',
+    'description' => 'Mangage feeds',
+    'page callback' => 'meteologic_page_feeds',
+    'access arguments' => array('administer meteologic'),
+    'file' => 'meteologic.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+  );
+
+  $items['admin/config/services/meteologic/feeds/default'] = array(
+    'title' => 'Home',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -50,
+  );
+
+  // Add settings forms for feeds.
+  foreach (meteologic_feeds() as $slug => $info) {
+    $items["admin/config/services/meteologic/feeds/$slug"] = array(
+      'title' => $info['name'],
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('meteologic_form_feed_config', $slug),
+      'access arguments' => array('administer meteologic'),
+      'file' => 'meteologic.admin.inc',
+      'type' => MENU_LOCAL_TASK,
+    );
+  }
+
+  $items['admin/config/services/meteologic/widgets'] = array(
+    'title' => 'Widget Configuration',
+    'description' => 'Mangage Customisable Widgets',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('meteologic_widgets_form'),
+    'access arguments' => array('administer meteologic'),
+    'file' => 'meteologic.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 39,
+  );
+
+
+  /*
+  $items['admin/config/services/meteologic/widgets/default'] = array(
+      'title' => 'Home',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => -50,
+  );
+  */
+
+
+  $items['admin/config/services/meteologic/cron'] = array(
+    'title' => 'Cron',
+    'description' => 'Configure automatic feed updating on cron.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('meteologic_form_settings_cron'),
+    'access arguments' => array('administer meteologic'),
+    'file' => 'meteologic.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => -1,
+  );
+
+  $items['admin/config/services/meteologic/update'] = array(
+    'title' => 'Manual Update',
+    'description' => 'Manually update weather feeds.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('meteologic_update_form'),
+    'access arguments' => array('administer meteologic'),
+    'file' => 'meteologic.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 49,
+  );
+
+  $items['admin/config/services/meteologic/summary'] = array(
+    'title' => 'Summary',
+    'description' => 'Meteologic configuration summary.',
+    'page callback' => 'meteologic_summary_page',
+    'access arguments' => array('administer meteologic'),
+    'file' => 'meteologic.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 50,
+  );
+
+  $items['admin/config/services/meteologic/cc'] = array(
+    'title' => 'Custom Cron Update',
+    'page callback' => 'meteologic_custom_cron',
+    'access arguments' => array('administer meteologic'),
+    'type' =>  MENU_CALLBACK,
+  );
+
+
+  // Generate feed pages.
+  $meteologic_page_path = variable_get('meteologic_page_path', 'meteologic');
+
+  // @TODO do we really need specific permissions for each feed or just "view meteologic feed"?
+  // For now leave it as "access content".
+  $access_arguments = array('access content');
+
+  if (variable_get('meteologic_page_enable', FALSE)) {
+    foreach (meteologic_feeds() as $feed => $feed_info) {
+      if (!empty($feed_info['providers'])) {
+        // Generate the default page with the provider selected in settings.
+        $items[$meteologic_page_path . "/{$feed}"] = array(
+          'title' => $feed_info['name'],
+          'page callback' => '_meteologic_render_page',
+          'page arguments' => array($feed),
+          'access arguments' => $access_arguments,
+        );
+
+        $items[$meteologic_page_path . "/{$feed}/default"] = array(
+          'title' => $feed_info['name'],
+          'type' => MENU_DEFAULT_LOCAL_TASK,
+          'weight' => -50,
+        );
+
+        // Generate a page for each provider implementing the feed.
+        //NOTE we can achieve all we need with blocks as far as weather is concerned.
+        //The only reason to keep pages for feed/providers is if we start including other types of feed like RSS
+        if (variable_get('meteologic_feed_pages', FALSE)) {
+          foreach ($feed_info['providers'] as $provider) {
+            $items[$meteologic_page_path . "/{$feed}/{$provider['_slug']}"] = array(
+              'title' => "{$provider['name']}",
+              'page callback' => '_meteologic_render_page',
+              'page arguments' => array($feed, $provider['_slug']),
+              'access arguments' => $access_arguments,
+              'type' => MENU_LOCAL_TASK,
+            );
+          }
+        }
+      }
+    }
+  }
 
   return $items;
 }
 
 /**
- * Implementation of hook_theme()
+ * Page callback.
+ * This is just an intermediate step so we can properly add the data and pass
+ * the render array along.
+ *
+ * @see meteologic_menu()
+ */
+function _meteologic_render_page($feed, $provider = NULL) {
+  $provider_orig = $provider;
+
+  if ($feed = meteologic_feeds($feed)) {
+    if (!isset($provider)) {
+      $provider = meteologic_provider_default($feed['_slug']);
+    }
+
+    $provider = $feed['providers'][$provider];
+
+    $theme_callback = is_array($provider['theme']) ? $provider['theme']['page'] : $provider['theme'];
+
+    // Set breadcrumb and page title.
+    $meteologic_page_path = variable_get('meteologic_page_path', 'meteologic');
+    $breadcrumb = drupal_get_breadcrumb();
+
+    if (!isset($provider_orig)) {
+      $breadcrumb[] = l(t($feed['name']), "{$meteologic_page_path}/{$feed['_slug']}");
+    }
+    else {
+      $breadcrumb[] = l(t($provider['name']), "{$meteologic_page_path}/{$feed['_slug']}/{$provider['_slug']}");
+      drupal_set_title(t("@feed - @provider", array('@feed' => $feed['name'], '@provider' => $provider['name'])));
+    }
+
+    drupal_set_breadcrumb($breadcrumb);
+
+    return array(
+      '#theme' => $theme_callback,
+      '#pre_render' => array('meteologic_pre_render'),
+      '#meteologic_feed' => $feed['_slug'],
+      '#meteologic_provider' => $provider['_slug'],
+    );
+  }
+
+  return MENU_NOT_FOUND;
+}
+
+/**
+ * Implements hook_cron().
+ * Meteologic updates vis cron using two different methods
+ * Batch Update and directly invoking _meteologic_update_feed
+ * This is configurable via the admin (meteologic_usebatch TRUE/FALSE). This option was made available due to
+ * Batch not playing nicely with other modules like securepages
+ */
+function meteologic_cron() {
+  cache_clear_all(NULL, 'cache_meteologic');
+  if(variable_get('meteologic_usebatch', FALSE)){
+    if (variable_get('meteologic_dev', TRUE)) {
+      watchdog('meteologic', 'Starting Meteologic update via cron using batch', array(), WATCHDOG_INFO);
+    }
+    $queue = DrupalQueue::get('meteologic_update');
+    foreach (meteologic_feeds() as $feed) {
+      $queue->createItem(array('feed' => $feed, 'cron' => TRUE));
+    }
+  }else{
+    if (variable_get('meteologic_dev', TRUE)) {
+      watchdog('meteologic', 'Starting Meteologic update via cron using update_feeds', array(), WATCHDOG_INFO);
+    }
+    foreach (meteologic_feeds() as $feed) {
+      watchdog('meteologic', 'Updating feed %feed', array('%feed' => $feed,), WATCHDOG_INFO);
+      _meteologic_update_feed(array('feed'=>$feed));
+    }
+  }
+}
+
+
+function meteologic_custom_cron() {
+  cache_clear_all(NULL, 'cache_meteologic');
+
+    if (variable_get('meteologic_dev', TRUE)) {
+      watchdog('meteologic', 'Starting Meteologic update via cron using update_feeds', array(), WATCHDOG_INFO);
+    }
+    foreach (meteologic_feeds() as $feed) {
+      watchdog('meteologic', 'Updating feed %feed', array('%feed' => $feed,), WATCHDOG_INFO);
+      _meteologic_update_feed_cc(array('feed'=>$feed));
+    }
+}
+
+/**
+ * Implements hook_cron_queue_info().
+ */
+function meteologic_cron_queue_info() {
+  return array(
+    'meteologic_update' => array(
+      'worker callback' => '_meteologic_update_feed',
+      'time' => 60,
+    ),
+  );
+}
+
+/**
+ * Implements hook_hook_info().
+ */
+function meteologic_hook_info() {
+  return array(
+    'meteologic_feed_info' => array(
+      'group' => 'meteologic',
+    ),
+    'meteologic_provider_info' => array(
+      'group' => 'meteologic',
+    ),
+  );
+}
+
+/**
+ * Implements hook_theme().
  */
 function meteologic_theme() {
-  //Theme blocks.
-  //Foreach block we have set in blocks, theme that block
-  $blocks = variable_get('meteologic_blocks', NULL);
-  foreach ($blocks as $value) {
-		$theme[$value['theme']] = array (
-      'path'      => METEOLOGIC_MODULE_PATH,
-      'template'  => 'theme/'.str_replace('_','-',$value['theme']),
-      'arguments' => array( 'widget' => NULL ),
-		);
+
+  $module_path = drupal_get_path('module', 'meteologic');
+  $base = array(
+    'path' => "$module_path/theme",
+  );
+
+  $theme = array(
+    'meteologic_form_feed_config' => array(
+      'render element' => 'form',
+      'file' => 'theme/meteologic.theme.inc',
+    ),
+
+    'meteologic_homepagewidget' => $base + array(
+        'variables' => array('data' => array()),
+        'file' => 'meteologic.theme.inc',
+        'template' => 'meteologic-homepagewidget'
+      ),
+
+    'meteologic_footerwidget' => $base + array(
+        'variables' => array('data' => array()),
+        'file' => 'meteologic.theme.inc',
+        'template' => 'meteologic-footerwidget'
+      ),
+
+
+  );
+
+  // Declare theme functions on the behalf of providers.
+  foreach (meteologic_providers() as $provider) {
+    $callbacks = array();
+
+    foreach ($provider['feeds'] as $feed) {
+      if (is_array($feed['theme'])) {
+        foreach ($feed['theme'] as $callback) {
+          $callbacks[] = $callback;
+        }
+      }
+      else {
+        $callbacks[] = $feed['theme'];
+      }
+    }
+
+    $callbacks = array_unique($callbacks);
+
+    foreach ($callbacks as $callback) {
+      $theme[$callback] = array(
+        'variables' => array('data' => array()),
+        // Convention over configuration, baby.
+        'file' => "{$provider['module']}.theme.inc",
+        'path' => drupal_get_path('module', $provider['module']),
+      );
+    }
   }
-  //@todo - any other themeing to play with?
+
   return $theme;
 }
 
 /**
- * Implementation of hook_block()
+ * Implements hook_block_info().
  */
-function meteologic_block($op = 'list', $delta = 0, $edit = array()) {
-  //Switch through Ops @todo - we need to add in configure options, when we add new blocks @todo - When we move to multiple blocks and options, this makes everything easier. Remember block delta's should remain numeric
-  $blocks = variable_get('meteologic_blocks', NULL);
-  switch ($op) {
-    case 'list':
-      $items = array();
-      //If we have out list of variables, and they are not NULL then show the blocks
-      foreach ($blocks as $key => $value ) {
-        $items[$key]['info']  = t('NOAA Weather: @INFO', array('@INFO' => $value['info']));
-        $items[$key]['cache'] = BLOCK_NO_CACHE;
+function meteologic_block_info() {
+  $info = array();
+  $feeds = meteologic_feeds();
+
+  foreach ($feeds as $feed => $feed_info) {
+    // Generate standard block for each feed, but only if it has at least
+    // one provider.
+    if (!empty($feed_info['providers'])) {
+      $info[$feed] = array(
+        'info' => t('Meteologic: @feed', array(
+          '@feed' => $feed_info['name'],
+          '@provider' => $feed_info['name'],
+        )),
+        'cache' => DRUPAL_CACHE_GLOBAL,
+      );
+
+      // Generate a specific block for each feed/provider combination.
+      if (variable_get('meteologic_feed_blocks', FALSE)) {
+        foreach ($feed_info['providers'] as $provider_name => $provider_info) {
+          /*
+           * Provider by Location mod:  
+           * If the provider allows for multiple locations this will be defined in the provider module and passed here
+           * to create an individial block for each loaction 
+           */
+          if(!empty($provider_info['locations']) && count($provider_info['locations'])){
+            // Loop locations
+            /*
+             * Each Location contains a string indicating the location name and location data delineated by 2 colons ::
+             * We use this double colon string to explode the string into and array to allow us to use the location name
+             * To create a location specific block
+             */
+            foreach ($provider_info['locations'] as $location) {
+              $loc_array = explode('::',$location);
+              $loc_name = str_replace(' ', '-', $loc_array[0]);
+
+              $info["{$feed}___{$provider_name}___{$loc_name}"] = array(
+                'info' => t('Meteologic Extra: @feed by @provider for @location', array(
+                  '@feed' => $feed_info['name'],
+                  '@provider' => $provider_info['name'],
+                  '@location' => $loc_name,
+                )),
+                'cache' => DRUPAL_CACHE_GLOBAL,
+              );
+            }
+
+          }else{  //no locations passed from provider so create feed___provider as normal:
+            /* 
+             * DEV NOTE: ultimately we need to move all provider modules to the location model 
+             * but until then we need to keep the sans location path here 
+             */
+            $info["{$feed}___{$provider_name}"] = array(
+              'info' => t('Meteologic Extra: @feed by @provider', array(
+                '@feed' => $feed_info['name'],
+                '@provider' => $provider_info['name'],
+              )),
+              'cache' => DRUPAL_CACHE_GLOBAL,
+            );
+          }
+        }
       }
-      return $items;
-    case 'view':
-      //Find our block through the delta and theme them accordingly @todo - When we move to a more normalized system, our arrays will populate this info automatically now
-      $block['subject'] = $blocks[$delta]['info'];
-      $block['content'] = theme($blocks[$delta]['theme']);
-      return $block;
+    }
+  }
+
+  $info["meteologic_homepagewidget"] = array(
+    'info' => t('Meteologic : Homepage Widget'),
+    'cache' => DRUPAL_CACHE_GLOBAL,
+  );
+
+  $info["meteologic_footerwidget"] = array(
+    'info' => t('Meteologic : Footer Widget'),
+    'cache' => DRUPAL_CACHE_GLOBAL,
+  );
+
+  return $info;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function meteologic_block_view($delta = '') {
+
+  $block = array();
+  switch($delta){
+    case 'meteologic_homepagewidget':
+      $block['subject'] = t('Weather');
+      $block['content'] = array(
+        '#theme' => 'meteologic_homepagewidget',
+        '#pre_render' => array('meteologic_prerender_homepagewidget'),
+      );
+      break;
+
+    case 'meteologic_footerwidget':
+      $block['subject'] = t('Weather');
+      $block['content'] = array(
+        '#theme' => 'meteologic_footerwidget',
+        '#pre_render' => array('meteologic_prerender_footerwidget'),
+      );
+      break;
+
+    default:
+
+      $feeds = meteologic_feeds();
+      if (array_key_exists($delta, $feeds)) { //standard block provided by base meteologic module
+        $feed = $delta;
+        $provider = meteologic_provider_default($delta); //sometimes a string (as in radar) sometimes an array
+        $feed = meteologic_feeds($feed);
+        $subject = $feed['name'];
+        /* TODO fig out why meteologic returns only the provider as a string for radar and an array for all else */
+        if(is_array($provider)){
+          $provider = $feed['providers'][$provider['_slug']]; //need to pass the provider['_slug'] instead of whole provider array
+        }else{
+          $provider = $feed['providers'][$provider];  //this was causing illegal offset if provider returned as an array hence the if
+        }
+
+
+        $meteologic_pre_render = array('meteologic_pre_render');
+
+      }else{ //non-standard block provided by meteologic submodules
+        /*
+         * When Displaying a Block this is where we begin to split on
+         * whether the feed/provider has a location:
+         * e.g. current___wunder___Killington
+         * or is a single feed in which case the provider's feed location is not set
+         * e.g. radar___noaa
+         */
+        //explode delta to determine if a location exists in blocks delta
+        $delta_array = explode('___', $delta);
+        //if $delta_array contains a 3rd index (2) then we are viewing a block with a location
+        if (array_key_exists(2,$delta_array)){ //location(s) exist for this feed___provider block
+          //define the pre render function for location(s) present blocks
+          $meteologic_pre_render = array('meteologic_pre_render_location');
+          list($feed, $provider, $location) = explode('___', $delta);
+        }else{  //else we are loading a block sans location so proceed as normal feed___provider specific block
+          //define the pre render function for sans location blocks
+          $meteologic_pre_render = array('meteologic_pre_render');
+          list($feed, $provider) = explode('___', $delta);
+          $location = ''; //pass empty location element to block
+        }
+        $feed = meteologic_feeds($feed);
+        $provider = $feed['providers'][$provider];
+        // set the block subject based on presence of location
+        if(isset($location)){
+          $subject = "{$provider['name']} {$feed['name']} {$location}";
+        }else{
+          $subject = "{$provider['name']} {$feed['name']}";
+        }
+      }
+
+      $theme_callback = is_array($provider['theme']) ? $provider['theme']['page'] : $provider['theme'];
+      $block['subject'] = $subject;
+      $block['content'] = array(
+        '#theme' => $theme_callback,
+        '#pre_render' => $meteologic_pre_render,
+        '#meteologic_feed' => $feed['_slug'],
+        '#meteologic_provider' => $provider['_slug'],
+        '#meteologic_location' => $location,  // tack on the location element, will be empty if no location
+      );
+
+  }
+
+  return $block;
+}
+
+/*
+* DEV NOTE meteologic_get_data() and meteologic_get_data_location() are where most the feed importing magic happens
+* we need to diverge here because firing off the importing of multiple feeds (locations) for a single feed___provider
+* requires more complex/different processing routine then a sans location feed___provider. it also allows us to keep the original
+* sans location functionality in place until all provider modules have been updated to the loaction model
+*/
+/**
+ * Pre render callback.
+ * Used to populate the #data variable before rendering feed data.
+ *
+ * @see meteologic_block_view()
+ */
+function meteologic_pre_render($elements) {
+  //grab data based on feed and provider and tack it on in data
+  $elements['#data'] = meteologic_get_data($elements['#meteologic_feed'], $elements['#meteologic_provider']);
+  return $elements;
+}
+/**
+ * Pre render callback with location.
+ * Used to populate the #data variable before rendering feed data.
+ *
+ * @see meteologic_block_view()
+ */
+function meteologic_pre_render_location($elements) {
+  $location = $elements['#meteologic_location'];
+  //grab data based on feed, provider AND location and tack it on in data
+  $elements['#data'] = meteologic_get_data_location($elements['#meteologic_feed'], $elements['#meteologic_provider'], $location);
+
+  return $elements;
+}
+
+/**
+ * Pre render callback with location.
+ * Used to populate the #data variable before rendering feed data.
+ *
+ * @see meteologic_block_view()
+ */
+function meteologic_prerender_footerwidget($elements) {
+
+
+  $locations_array = array('telluride');
+  $mf = meteologic_feeds();
+  if($mf){
+    foreach ($mf as $feedname => $feedinfo) {
+      $flag = variable_get('meteologic_footerwidget_'.$feedname);
+      if($flag){
+        foreach($feedinfo['providers'] as $provider => $provider_data){
+          $locations_array = $provider_data['locations'];
+          foreach ($locations_array as $location) {
+            $location_array = explode('::', $location);
+            $loc = $location_array[0];
+            $elements['#data'][$feedname][$provider][$loc] = meteologic_get_data_location($feedname, $provider, $loc);
+          }
+        }
+      }
+    }
+  }
+
+  return $elements;
+}
+
+/**
+ * Pre render callback with location.
+ * Used to populate the #data variable before rendering feed data.
+ *
+ * @see meteologic_block_view()
+ */
+function meteologic_prerender_homepagewidget($elements) {
+
+  $mf = meteologic_feeds();
+  if($mf){
+    foreach ($mf as $feedname => $feedinfo) {
+      $flag = variable_get('meteologic_homepagewidget_'.$feedname);
+      if($flag){
+        foreach($feedinfo['providers'] as $provider => $provider_data){
+          $locations_array = $provider_data['locations'];
+          foreach ($locations_array as $location) {
+            $location_array = explode('::', $location);
+            $loc = $location_array[0];
+            $elements['#data'][$feedname][$provider][$loc] = meteologic_get_data_location($feedname, $provider, $loc);
+          }
+        }
+      }
+    }
+  }
+  return $elements;
+}
+
+/**
+ * Returns information on either a specified feed or all of them.
+ *
+ * @param string
+ *   A feed name.
+ * @param boolean
+ *   TRUE to bypass caches and force rebuilding feed data.
+ * @return array
+ *   An array of feed information, keyed by name.
+ */
+function meteologic_feeds($feed = NULL, $reset = FALSE) {
+  static $feeds;
+  $providers = meteologic_providers();
+
+  if ($reset || !isset($feeds)) {
+    $feeds = array();
+
+    foreach (module_implements('meteologic_feed_info') as $module) {
+      foreach (module_invoke($module, 'meteologic_feed_info') as $name => $info) {
+        $feeds[$name] = $info;
+        $feeds[$name]['_slug'] = $name;
+        // Find providers of this feed.
+        $feeds[$name]['providers'] = array();
+
+        // Add provider information to each feed.
+        foreach ($providers as $provider_slug => $provider_info) {
+          if (array_key_exists($name, $provider_info['feeds'])) {
+            // We actually return a custom version of the provider's info,
+            // suited to this particular feed.
+            $provider_info['enabled'] = variable_get("meteologic_{$name}_{$provider_slug}", TRUE);
+            $provider_feeds = $provider_info['feeds'];
+            unset($provider_info['feeds']);
+
+            if (isset($provider_feeds[$name])) {
+              $provider_info += $provider_feeds[$name];
+            }
+
+            $feeds[$name]['providers'][$provider_slug] = $provider_info;
+          }
+        }
+      }
+    }
+  }
+
+  return (isset($feed) && array_key_exists($feed, $feeds)) ? $feeds[$feed] : $feeds;
+}
+
+/**
+ * Implements hook_meteologic_feed_info().
+ *
+ * Define our default feeds.
+ *
+ * @see meteologic_feeds()
+ */
+function meteologic_meteologic_feed_info() {
+  return array(
+    'current' => array(
+      'name' => t('Current conditions'),
+    ),
+    'forecast' => array(
+      'name' => t('Point forecast'),
+    ),
+    'radar' => array(
+      'name' => t('Radar'),
+    ),
+    'marine' => array(
+      'name' => t('Marine'),
+    ),
+    'extended' => array(
+      'name' => t('Extended forecast'),
+    ),
+    'tidal' => array(
+      'name' => t('Tidal'),
+    ),
+    'snow' => array(
+      'name' => t('Snow'),
+    ),
+    'surf' => array(
+      'name' => t('Surf'),
+    ),
+  );
+}
+
+/**
+ * Returns information on either a specified provider or all of them.
+ *
+ * @param string
+ *   A provider name.
+ * @param boolean
+ *   TRUE to bypass caches and force rebuilding feed data.
+ * @return array
+ *   An array of provider information, keyed by name.
+ */
+function meteologic_providers($provider = NULL, $reset = FALSE) {
+  static $providers;
+
+  if ($reset || !isset($providers)) {
+    $providers = array();
+
+    foreach (module_implements('meteologic_provider_info') as $module) {
+      foreach (module_invoke($module, 'meteologic_provider_info') as $name => $info) {
+        $providers[$name] = $info;
+        $providers[$name]['_slug'] = $name;
+        $providers[$name]['module'] = $module;
+      }
+    }
+  }
+
+  return isset($provider) && array_key_exists($provider, $providers) ? $providers[$provider]
+    : $providers;
+}
+/**
+ * Update Loop operation callback.
+ * Updates forecast information for each provider.
+ *
+ * @see meteologic_update_form_submit()
+ */
+function meteologic_update_feeds_manual($feeds) {
+
+  foreach ($feeds as $key => $feed) {
+    _meteologic_update_feed(array('feed'=>$feed));
+    drupal_set_message(t($feed['name'].' update successful!'));
+  }
+
+}
+/**
+ * Batch operation callback.
+ * Updates forecast information for each provider.
+ *
+ * @see meteologic_update_form_submit()
+ */
+function meteologic_update_feeds_batch($feeds, &$context) {
+
+  // Init sandbox info.
+
+  if (variable_get('meteologic_dev', TRUE)) {
+    watchdog('meteologic', 'Batch Set updating feeds', array(), WATCHDOG_INFO);
+  }
+
+  if (empty($context['sandbox'])) {
+    $context['sandbox'] = array();
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['max'] = count($feeds);
+  }
+
+  // Process a single provider.
+  $current = $feeds[$context['sandbox']['progress']];
+  // @TODO store errors somewhere to display after batch finishes?
+  _meteologic_update_feed(array('feed' => $current));
+  ++$context['sandbox']['progress'];
+
+  // Check if the batch is finished
+  if ($context['sandbox']['progress'] < $context['sandbox']['max']) {
+    $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
   }
 }
 
+/**
+ * Batch finished callback.
+ * Display confirmation message once update batch operation finished.
+ *
+ * @see meteologic_update_form_submit()
+ */
+function meteologic_update_feeds_batch_finished($success, $results, $operations, $elapsed) {
+  if ($success) {
+    drupal_set_message(t('Batch weather update successful!'));
+  }
+  else {
+    // An error occurred.
+    // $operations contains the operations that remained unprocessed.
+    $error_operation = reset($operations);
+    drupal_set_message(t('An error occurred while processing @operation with arguments : @args', array('@operation' => $error_operation[0], '@args' => print_r($error_operation[0], TRUE))));
+  }
+}
 
-function meteologic_cron() {
-  //Update All Weather.
-  _meteologic_update_all_weather();
+/**
+ * Updates information for a specific feed.
+ * This function shouldn't be called directly unless you know what you are
+ * doing! If all you want to do is update the forecast information manually
+ * please consider visiting the settings page at "admin/config/services/update".
+ *
+ * @param array
+ *   An array of feed information.
+ * @return boolean
+ *   Whether the update was successful or not.
+ */
+function _meteologic_update_feed(array $data) {
+
+  extract($data);
+
+  foreach ($feed['providers'] as $provider => $provider_info) {
+    if ($provider_info['enabled']) {
+      if (isset($cron) && $cron === TRUE) {
+        if (!variable_get("meteologic_cron_{$feed['_slug']}_{$provider}")) {
+          continue;
+        }
+      }
+
+      /*
+       * Here again we diverge between location and sans location feed providers
+       */
+      if($provider_info['locations']){
+        //Loop each location defined in provider module and load data using meteologic_get_data_location()
+        foreach ($provider_info['locations'] as $loc) {
+          //once again we could probably use list() here
+          $loc_array = explode('::',$loc);
+          $location = $loc_array[0];
+          /*TODO return array or false to signal successful update or not */
+          meteologic_get_data_location($feed['_slug'], $provider, $location, TRUE);
+        }
+      }else{
+        /*TODO return array or false to signal successful update or not */
+        meteologic_get_data($feed['_slug'], $provider, TRUE);
+      }
+    }
+  }
+}
+
+function _meteologic_update_feed_cc(array $data) {
+
+  extract($data);
+
+  foreach ($feed['providers'] as $provider => $provider_info) {
+    if ($provider_info['enabled']) {
+      if (isset($cron) && $cron === TRUE) {
+        if (!variable_get("meteologic_cron_{$feed['_slug']}_{$provider}")) {
+          continue;
+        }
+      }
+
+      /*
+       * Here again we diverge between location and sans location feed providers
+       */
+      if($provider_info['locations']){
+        //Loop each location defined in provider module and load data using meteologic_get_data_location()
+        foreach ($provider_info['locations'] as $loc) {
+          //once again we could probably use list() here
+          $loc_array = explode('::',$loc);
+          $location = $loc_array[0];
+          /*TODO return array or false to signal successful update or not */
+          meteologic_get_data_location($feed['_slug'], $provider, $location, TRUE);
+        }
+      }else{
+        /*TODO return array or false to signal successful update or not */
+        meteologic_get_data($feed['_slug'], $provider, TRUE);
+      }
+    }
+  }
+}
+
+/**
+ * Returns data for a given feed.
+ *
+ * @param string
+ *   The feed.
+ * @param string
+ *   Optionally specify a provider to return the feed data for and if left out,
+ *    return results for the default provider.
+ * @param boolean
+ *   Optionally, bypass caches and return a fresh result.
+ * @return array|FALSE
+ *   An array of feed data, or FALSE something went wrong.
+ */
+function meteologic_get_data($feed, $provider = NULL, $reset = FALSE) {
+
+  // Good ol' static cache.
+  static $results;
+
+  // Store parameter for later.
+  $has_provider = isset($provider);
+
+  if (!$has_provider) {
+    $provider = meteologic_provider_default($feed);
+    if (!$provider) {
+      return FALSE;
+    }
+  }
+
+  // Check static cache.
+  /* if no reset and the feed id currently populated then return existing cached data
+  * this is invoked when a feed/providers block is requested and there is no cached data
+  * otherwise this was called from cron where reset = TRUE in which case we are updating so
+  * we move past to load feed info below
+  */
+  if (!$reset && isset($results[$feed][$provider])) {
+    return $results[$feed][$provider];
+  }
+
+  // Load feed info.
+  $feed_info = meteologic_feeds($feed);
+  $provider_info = & $feed_info['providers'][$provider];
+
+  if (variable_get('meteologic_dev', TRUE)) {
+    watchdog('meteologic', 'Looking up data for feed: %feed from provider: %provider', array(
+      '%feed' => $feed_info['name'],
+      '%provider' => $provider_info['name'],
+    ), WATCHDOG_INFO);
+  }
+
+  if (isset($provider_info['path'])) {
+    $cache_key = "meteologic_result_{$feed}_{$provider}";
+
+    // Load tokens and replacements.
+    $tokens = isset($provider_info['tokens']) && is_array($provider_info['tokens'])
+      ? $provider_info['tokens'] : array();
+
+    $replace = array();
+    foreach ($tokens as $token) {
+      $token = str_replace('@', '', $token);
+      $varname = "{$provider_info['module']}_{$feed}_{$token}";
+      $replace[] = variable_get_value($varname);
+    }
+
+    // Replace tokens.
+    $path = str_replace($tokens, $replace, $provider_info['path']);
+
+    // @TODO implement authentication for any feeds that require it.
+    // Will do when we run into this scenario.
+    // Check Drupal's cache.
+    if (!$reset && $cache = cache_get($cache_key, 'cache_meteologic')) {
+
+      if (!empty($cache->data)) {
+        $results[$feed][$provider] = $cache->data;
+        return $cache->data;
+      }
+    }
+
+    //Allow custom process if it exists in provider_info to intercept feed processing
+    if(isset($provider_info['custom_process'])){
+      // check for and fire custom process.
+      $custom_result = call_user_func($provider_info['custom_process'], $path);
+    }else{
+      // Let' try to keep it simple for now although we might need to use CURL eventually.
+
+      if ($xml = simplexml_load_file($path, 'SimpleXMLElement', LIBXML_NOCDATA)) {
+
+        if (variable_get('meteologic_dev', TRUE)) {
+          watchdog('meteologic', 'Connection Success: %feed from provider: %provider \using %path', array(
+            '%feed' => $feed_info['name'],
+            '%provider' => $provider_info['name'],
+            '%path' => $path,
+          ), WATCHDOG_INFO);
+        }
+
+        // Convert XML to array.
+        // @see http://gaarf.info/2009/08/13/xml-string-to-php-array/
+        $array = json_decode(json_encode((array) $xml), 1);
+
+        //Allow custom preprocess if it exists in provider_info to modify $array prior to cache_set
+        if($provider_info['custom_preprocess']){
+          $array = call_user_func($provider_info['custom_preprocess'], $array);
+        }
+        // We use the permanent cache because the data gets updated during cron runs anyway.
+        cache_set($cache_key, $array, 'cache_meteologic', CACHE_PERMANENT);
+
+        $results[$feed][$provider] = $array;
+
+        if (variable_get('meteologic_dev', TRUE)) {
+          watchdog('meteologic', 'Retrieved data for feed: %feed from provider: %provider', array(
+            '%feed' => $feed_info['name'],
+            '%provider' => $provider_info['name'],
+          ), WATCHDOG_INFO);
+        }
+        return $array;
+      }
+      else if (!$has_provider) {
+        // @TODO check for fallback option & feed.
+      }
+      else {
+        watchdog('meteologic', 'Failed to get data for feed: %feed from provider: %provider', array(
+          '%feed' => $feed_info['name'],
+          '%provider' => $provider_info['name'],
+        ), WATCHDOG_ERROR);
+      }
+    }
+  }else{
+
+    watchdog('meteologic', 'Path not configured: %feed from provider: %provider', array(
+      '%feed' => $feed_info['name'],
+      '%provider' => $provider_info['name'],
+    ), WATCHDOG_ERROR);
+  }
+
+  return FALSE;
+}
+
+/**
+ * Returns data for a given feed with locations.
+ *
+ * @param string
+ *   The feed.
+ * @param string
+ *   Optionally specify a provider to return the feed data for and if left out,
+ *    return results for the default provider.
+ * @param boolean
+ *   Optionally, bypass caches and return a fresh result.
+ * @return array|FALSE
+ *   An array of feed data, or FALSE something went wrong.
+ */
+function meteologic_get_data_location($feed, $provider = NULL, $location = NULL, $reset = FALSE) {
+
+  $has_provider = isset($provider);
+
+  if (!$has_provider) {
+    $provider = meteologic_provider_default($feed);
+    if (!$provider) {
+      return FALSE;
+    }
+  }
+
+  // Load feed info.
+  $feed_info = meteologic_feeds($feed);
+  $provider_info = & $feed_info['providers'][$provider];
+  $cache_key = "meteologic_result_{$feed}_{$provider}_{$location}";
+
+  if (!$reset && $cache = cache_get($cache_key, 'cache_meteologic')) {
+
+    if (!empty($cache->data) && !isset($cache->data['error'])) {
+      $results[$feed][$provider] = $cache->data;
+
+      if (variable_get('meteologic_dev', TRUE)) {
+        watchdog('meteologic', 'Returning data from meteologic cache: %feed from provider: %provider', array(
+          '%feed' => $feed_info['name'],
+          '%provider' => $provider_info['name'],
+        ), WATCHDOG_INFO);
+      }
+      return $cache->data;
+    }
+  }
+
+  // Load feed info.
+  $feed_info = meteologic_feeds($feed);
+  $provider_info = & $feed_info['providers'][$provider];
+
+  if (variable_get('meteologic_dev', TRUE)) {
+    watchdog('meteologic', 'Looking up data for feed: %feed from provider: %provider', array(
+      '%feed' => $feed_info['name'],
+      '%provider' => $provider_info['name'],
+    ), WATCHDOG_INFO);
+  }
+
+  if (isset($provider_info['path'])) {
+    $cache_key = "meteologic_result_{$feed}_{$provider}_{$location}";
+
+    // Load tokens and replacements.
+    $tokens = isset($provider_info['tokens']) && is_array($provider_info['tokens'])
+      ? $provider_info['tokens'] : array();
+
+    $replace = array();
+
+    foreach ($tokens as $token) {
+      $token = str_replace('@', '', $token);
+      $varname = "{$provider_info['module']}_{$feed}_{$token}";
+      $varvalue_raw = variable_get_value($varname);
+
+      if (variable_get('meteologic_dev', TRUE)) {
+        watchdog('meteologic', 'Token lookup : %varname -> %varval', array(
+          '%varname' => $varname,
+          '%varval' => serialize($varvalue_raw),
+        ), WATCHDOG_INFO);
+      }
+      /*
+       * As we loop through tokens and grab variable values we look for presence of ::
+      * The double colon indicates that this token's value is a location
+      * But we only need to extract location data part, i.e. the part following the ::
+      */
+      if(strstr($varvalue_raw,'::')){ //this is a location var
+        $location_array = explode("\n",trim($varvalue_raw));
+        //dsm('location array: '.$location_array);
+        /*
+        * Loop the resulting array and look for $location in $location_val
+        * to extract the correct location data for this location
+        */
+        foreach ($location_array as $location_val) {
+          if(strstr($location_val,$location)){
+            //once again... list()????
+            //dsm('location val: '.$location_val);
+            $location_val_array = explode('::', $location_val);
+            $var_value = trim($location_val_array[1]);
+          }
+        }
+      }else{// or this is just a plan ol' token value
+        $var_value = $varvalue_raw;
+      }
+      $replace[] = $var_value;
+    }
+    //create the feed path for the current feed___provider___location
+    $path = str_replace($tokens, $replace, $provider_info['path']);
+
+    // @TODO implement authentication for any feeds that require it.
+    // Will do when we run into this scenario.
+    // Check meteologic's cache.
+    /*
+     if (!$reset && $cache = cache_get($cache_key, 'cache_meteologic')) {
+
+       if (!empty($cache->data) && !isset($cache->data['error'])) {
+         $results[$feed][$provider] = $cache->data;
+
+         if (variable_get('meteologic_dev', TRUE)) {
+           watchdog('meteologic', 'Returning data from meteologic cache: %feed from provider: %provider', array(
+             '%feed' => $feed_info['name'],
+             '%provider' => $provider_info['name'],
+           ), WATCHDOG_INFO);
+         }
+         dsm($cache->data);
+         return $cache->data;
+       }
+     }
+    */
+
+    //Allow custom process if it exists in provider_info to intercept feed processing
+    if(isset($provider_info['custom_process'])){
+      // @TODO check for and fire custom process.
+      if($reset){
+        $custom_result = call_user_func($provider_info['custom_process'], $path);
+      }
+    }else{
+      // Let' try to keep it simple for now although we might need to use CURL
+      // eventually.
+
+      if(!strstr($path,'http://')){
+        $path =  'http://'.$path;
+      }
+
+      ini_set('allow_url_fopen ','ON');
+      if ($xml = simplexml_load_file($path, 'SimpleXMLElement', LIBXML_NOCDATA)) {
+
+        // Convert XML to array.
+        // @see http://gaarf.info/2009/08/13/xml-string-to-php-array/
+        $array = json_decode(json_encode((array) $xml), 1);
+
+        //Allow custom preprocess if it exists in provider_info to modify $array prior to cache_set
+        if(isset($provider_info['custom_preprocess'])){
+          $array = call_user_func($provider_info['custom_preprocess'], $array);
+        }
+        // We use the permanent cache because the data gets updated during
+        // cron runs anyway.
+        cache_set($cache_key, $array, 'cache_meteologic', CACHE_PERMANENT);
+
+        $results[$feed][$provider][$location] = $array;
+
+        if (variable_get('meteologic_dev', TRUE)) {
+          watchdog('meteologic', 'Retrieved data for feed: %feed from provider: %provider', array(
+            '%feed' => $feed_info['name'],
+            '%provider' => $provider_info['name'],
+          ), WATCHDOG_INFO);
+        }
+        return $array;
+      }
+      else if (!$has_provider) {
+        // @TODO check for fallback option & feed.
+      }
+      else {
+        if (variable_get('meteologic_dev', TRUE)) {
+          watchdog('meteologic', 'Failed to get data for feed: %feed from provider: %provider', array(
+            '%feed' => $feed_info['name'],
+            '%provider' => $provider_info['name'],
+          ), WATCHDOG_ERROR);
+        }
+      }
+    }
+  }
+
+  return FALSE;
+}
+
+/**
+ * Returns the default provider for a given feed.
+ *
+ * @param string
+ *   The feed.
+ * @return string|FALSE
+ *   The default provider or FALSE if we couldn't find it.
+ */
+function meteologic_provider_default($feed) {
+
+  // Load default provider.
+  //minor mod since reset will barf if you try to send it value returned from a function like array_keys (variable get())
+  //i.e. Strict warning: Only variables should be passed by reference 
+  //$provider = reset(array_keys(variable_get("meteologic_weight_{$feed}", array())));
+  $keyed = array_keys(variable_get("meteologic_weight_{$feed}", array()));
+  $provider = reset($keyed);
+
+  // If weights have never been set we need to figure it out ourselves.
+  if (empty($provider)) {
+    $feed_info = meteologic_feeds($feed);
+    if (!empty($feed_info['providers'])) {
+      $provider = reset($feed_info['providers']);
+    }
+  }
+
+  return !empty($provider) ? $provider : FALSE;
 }

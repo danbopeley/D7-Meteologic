@@ -1,0 +1,19 @@
+<?php
+/**
+ * @file
+ * Meteologic Wunderground installation hooks.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function meteologic_wunder_uninstall() {
+  $result = db_select('variable', 'v')
+    ->fields('v', array('name'))
+    ->condition('name', 'meteologic_wunder_%', 'LIKE')
+    ->execute();
+
+  foreach ($result as $row) {
+    variable_del($row->name);
+  }
+}

@@ -1,8 +1,8 @@
-name            = meteologic
+name            = Meteologic
 description     = Provides a modular framework in which functionality can be configured to import weather data from a variety of sources 
-version         = 7.x-1.0-alpha
-package         = Meteologic
+version         = 7.x-1.5
+package         = Weather
+dependencies[] = variable
 core            = 7.x
-
-
+project = meteologic
 

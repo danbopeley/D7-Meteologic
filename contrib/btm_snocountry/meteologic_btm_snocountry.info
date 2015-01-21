@@ -1,0 +1,9 @@
+name = Meteologic BTM Snocountry
+description = Provides Snow and Ski report integration for the BTM Snocountry provider.
+package = Weather
+version = 7.x-1.0-dev
+dependencies[] = meteologic
+
+; Left intentionally for development.
+core = 7.x
+project = meteologic_btm_snocountry

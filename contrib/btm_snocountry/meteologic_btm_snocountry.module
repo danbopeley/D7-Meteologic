@@ -1,0 +1,23 @@
+<?php
+/**
+ * @file
+ * Meteologic Mesowest module.
+ */
+
+/**
+ * Implements hook_meteologic_provider_info();
+ */
+function meteologic_btm_snocountry_meteologic_provider_info() {
+  return array(
+    'btm_snowcountry' => array(
+      'name' => t('BTM Snocountry'),
+      'settings' => 'meteologic_btm_snocountry_settings_form',
+      'feeds' => array(
+        'snow' => array(
+          'path' => 'ski.bluetent.com/snocountry-hub/get-report',
+          'theme' => 'meteologic_btm_snocountry',
+        ),
+      ),
+    ),
+  );
+}
